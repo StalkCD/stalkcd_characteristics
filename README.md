@@ -1,0 +1,1 @@
+# stalkcd_characteristics
