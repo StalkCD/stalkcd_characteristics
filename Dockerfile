@@ -1,14 +1,16 @@
 # syntax=docker/dockerfile:1
 
-FROM node:18-alpine
-ENV NODE_ENV=production
+FROM node as stalkcd_characteristics
 
-WORKDIR /dist
 
-COPY ["package.json", "package-lock.json*", "./"]
-
-RUN npm install --production
-EXPOSE 80
+COPY tsconfig.json ./
+COPY package*.json ./
+COPY run.sh ./
 COPY . .
 
-CMD ["node", "dist/server.js"]
+RUN npm install typescript -g
+RUN npm install
+RUN tsc
+
+EXPOSE 6060
+CMD [ "node", "dist/server.js" ]

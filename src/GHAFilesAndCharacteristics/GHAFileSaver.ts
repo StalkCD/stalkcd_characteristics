@@ -21,7 +21,7 @@ export class GHAFileSaver {
                 this.createTargetDir(this.targetDir + history.repo?.workflowsFile.workflows![i].name);
                 let path = history.repo?.workflowsFile.workflows![i].name + "/";
                 this.fileWriter(this.targetDir + path + history.repo?.workflowsFile.workflows![i].name + "_runs", history.workflows![i].runsFile, ".json");
-                this.fileWriter(this.targetDir + path + history.repo?.workflowsFile.workflows![!i].name, history.repo?.workflowsFile.workflows![i], ".json");
+                this.fileWriter(this.targetDir + path + history.repo?.workflowsFile.workflows![i].name, history.repo?.workflowsFile.workflows![i], ".json");
 
                 let amountRunsOfWorkflow = Object.keys(history.workflows![i].runsFile.workflow_runs).length;
 
