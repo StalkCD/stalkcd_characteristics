@@ -1,0 +1,2 @@
+#!/bin/bash
+node ./dist/stalk-cd.js $@
