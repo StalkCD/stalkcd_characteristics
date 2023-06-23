@@ -25,7 +25,7 @@ export class GetKPIs {
         }
     }
 
-    async getKPIs(save: boolean): Promise<Kpis> {
+    async getKPIs(save: boolean, saveType: string): Promise<Kpis> {
 
         if (this.load != 'local' && this.load != 'download') {
             throw new Error('No valid load type.');
@@ -43,7 +43,7 @@ export class GetKPIs {
                 throw new Error('No token available for download.');
             }
             let loader: DownloadGHAFilesAndLogs = new DownloadGHAFilesAndLogs(this.repoOwnerForKPIs!, this.repoNameForKPIs, this.workflowNameForKPIs, this.token!);
-            history = await loader.downloadFiles(save);
+            history = await loader.downloadFiles(save, saveType);
         }
         const runsFileJson = history.workflows![0].runsFile;
 

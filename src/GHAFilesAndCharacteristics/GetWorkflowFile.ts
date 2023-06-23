@@ -20,7 +20,7 @@ export class GetWorkflowFile {
     }
 
 
-    async getWorkflowFile(save: boolean) {
+    async getWorkflowFile(save: boolean, saveType: string) {
 
         let workflowLC = this.workflowName.toLowerCase();
         const path = ".github/workflows/" + workflowLC + ".yml";

@@ -23,7 +23,7 @@ export class DownloadGHAFilesAndLogs {
     /**
      *
      */
-    async downloadFiles(save: boolean): Promise<GHAHistoryBuilder> {
+    async downloadFiles(save: boolean, saveType: string): Promise<GHAHistoryBuilder> {
 
         let history: GHAHistoryBuilder = new GHAHistoryBuilder();
 
@@ -64,7 +64,7 @@ export class DownloadGHAFilesAndLogs {
              */
             if(save) {
                 let saver: GHAFileSaver = new GHAFileSaver();
-                saver.saveFiles(history);
+                saver.saveFiles(history, saveType);
             }
 
         } catch (err: any) {

@@ -6,7 +6,7 @@ export class GHAFileSaver {
     private baseDir =  "GHAhistorydata";
     private targetDir = this.baseDir + "/";
 
-    saveFiles(history: GHAHistoryBuilder) {
+    saveFiles(history: GHAHistoryBuilder, saveType: string) {
 
         this.createTargetDir(this.baseDir);
 

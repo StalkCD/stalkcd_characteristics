@@ -7,8 +7,9 @@ const getKPIs = async (req: Request, res: Response) => {
     let workflowNameForKPIs: string = req.params.workflowName;
     let load: string = 'local'; //TODO Anpassen
     let save: boolean = false; //TODO Anpassen
-  
-    let kpis: Kpis = await new GetKPIs(repoNameForKPIs, workflowNameForKPIs, load).getKPIs(save);
+    let saveType: string = "db" //TODO über Schnittstelle abfragen
+
+    let kpis: Kpis = await new GetKPIs(repoNameForKPIs, workflowNameForKPIs, load).getKPIs(save, saveType);
   
     return res.status(200).json({kpis});
   };

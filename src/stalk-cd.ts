@@ -97,7 +97,8 @@ switch (+mode) {
 
         let save : boolean;
         save = true;
-        new DownloadGHAFilesAndLogs(repoOwner, repoName, workflowName, token).downloadFiles(save); //TODO in der Schnittstelle berücksichtigen ob gespeichert werden soll
+        let saveType: string = "db";
+        new DownloadGHAFilesAndLogs(repoOwner, repoName, workflowName, token).downloadFiles(save, saveType); //TODO in der Schnittstelle berücksichtigen ob gespeichert werden soll
         break;
 
     case Mode.GetKPIs:
@@ -122,7 +123,8 @@ switch (+mode) {
             tokenForKPIs = config.token;
         }
         let saveForKPIs = true;
-        new GetKPIs(repoNameForKPIs, workflowNameForKPIs, load, repoOwnerForKPIs, tokenForKPIs).getKPIs(saveForKPIs);
+        let saveTypeForKPIs = "db";
+        new GetKPIs(repoNameForKPIs, workflowNameForKPIs, load, repoOwnerForKPIs, tokenForKPIs).getKPIs(saveForKPIs, saveTypeForKPIs);
         break;
 
     case Mode.GetWorkflowFile:
@@ -144,7 +146,8 @@ switch (+mode) {
         }
         let saveWF : boolean;
         saveWF = true;
-        new GetWorkflowFile(repoOwnerWF, repoNameWF, workflowNameWF, tokenWF).getWorkflowFile(saveWF); //TODO in der Schnittstelle berücksichtigen ob gespeichert werden soll
+        let saveTypeForWF = "db";
+        new GetWorkflowFile(repoOwnerWF, repoNameWF, workflowNameWF, tokenWF).getWorkflowFile(saveWF, saveTypeForWF); //TODO in der Schnittstelle berücksichtigen ob gespeichert werden soll
         break;
 
     case Mode.GHAFileLoader:
