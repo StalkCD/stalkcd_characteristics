@@ -1,11 +1,10 @@
 # syntax=docker/dockerfile:1
 
-FROM node as stalkcd_characteristics
+FROM node
 
 
 COPY tsconfig.json ./
 COPY package*.json ./
-COPY run.sh ./
 COPY . .
 
 RUN npm install typescript -g

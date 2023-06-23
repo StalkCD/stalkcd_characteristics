@@ -7,7 +7,7 @@ const downloadGHAFilesAndLogs = async (req: Request, res: Response) => {
   let workflowName: string = req.params.workflowName;
   let gitHubToken: string = req.params.gitHubToken;
 
-  await new DownloadGHAFilesAndLogs(repoOwner, repoName, workflowName, gitHubToken).downloadFiles(false);
+  await new DownloadGHAFilesAndLogs(repoOwner, repoName, workflowName, gitHubToken).downloadFiles(true);
 
   return res.status(200).json({
       message: 'Download complete.'

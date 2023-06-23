@@ -27,12 +27,6 @@ export class GetKPIs {
 
     async getKPIs(save: boolean): Promise<Kpis> {
 
-        if (!fs.existsSync(`./res/GHAFilesandLogs/${this.repoNameForKPIs}`) && save === false) {
-            throw new Error('The repo does not exist.');
-        }
-        if (!fs.existsSync(`./res/GHAFilesandLogs/${this.repoNameForKPIs}/${this.workflowNameForKPIs}`) && save === false) {
-            throw new Error('The workflow does not exist.');
-        }
         if (this.load != 'local' && this.load != 'download') {
             throw new Error('No valid load type.');
         }

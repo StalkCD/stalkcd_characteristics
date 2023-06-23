@@ -1,5 +1,4 @@
 import fetch, {RequestInit, Response} from "node-fetch";
-import * as fs from 'fs';
 import {GHAFileSaver} from "./GHAFileSaver";
 import {GHAHistoryBuilder} from "./GHAHistoryBuilder";
 
@@ -11,6 +10,7 @@ export class DownloadGHAFilesAndLogs {
     repoOwner: string;
     workflowName: string;
     token: string;
+    rerunLimit: number = 0;
 
     constructor(repoOwner: string, repoName: string, workflowName: string, token: string) {
 
@@ -34,6 +34,7 @@ export class DownloadGHAFilesAndLogs {
             const workflowsJson: any = JSON.parse(fileContents);
             const amountWorkflows = Object.keys(workflowsJson.workflows).length;
             history.addRepo(this.repoName, workflowsJson);
+            /*
             for (let i = 0; i < amountWorkflows; i++) {
                 if(workflowsJson.workflows![i] !== undefined) {
 
@@ -59,6 +60,8 @@ export class DownloadGHAFilesAndLogs {
                     }
                 }
             }
+
+             */
             if(save) {
                 let saver: GHAFileSaver = new GHAFileSaver();
                 saver.saveFiles(history);
@@ -112,7 +115,7 @@ export class DownloadGHAFilesAndLogs {
 
     /**
      * This method uses the tryFetch method to get all workflows of a given repository via the github api.
-     * Afterwards this method downloads creates a folder in ./res/GHAFilesandLogs with the name of the given repository, if it doesn't already exist.
+     * Afterwards this method downloads creates a folder in GHAhistorydata with the name of the given repository, if it doesn't already exist.
      * The method returns the content of the downloaded file.
      * @private
      */
@@ -138,7 +141,7 @@ export class DownloadGHAFilesAndLogs {
      * @param fetchUrl the url to be downloaded
      * @private
      */
-    private async tryFetch(fetchUrl:string): Promise<Response> {
+    async tryFetch(fetchUrl:string): Promise<Response> {
         let fetchParams: RequestInit = {
             headers: {
                 'Accept': GITHUB_API_VERSION,
@@ -154,8 +157,15 @@ export class DownloadGHAFilesAndLogs {
             res = await fetch(url, fetchParams);
         } catch (err) {
             console.error(err);
+
+        }
+        if(res.url == null || res.url == "" && this.rerunLimit < 10) {
+            console.log("rerun " + this.rerunLimit)
+            this.rerunLimit = this.rerunLimit + 1;
+            this.tryFetch(fetchUrl);
         }
 
+        this.rerunLimit = 0;
         console.log("request successful: " + url)
         return res;
     }

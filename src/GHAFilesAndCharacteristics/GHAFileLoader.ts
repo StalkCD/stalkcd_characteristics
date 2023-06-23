@@ -18,14 +18,15 @@ export class GHAFileLoader {
     loadFiles(): GHAHistoryBuilder {
         let history = new GHAHistoryBuilder();
 
-        if (!fs.existsSync(`./res/GHAFilesandLogs/${this.repoName}`)) {
+        if (!fs.existsSync(`GHAhistorydata/${this.repoName}`)) {
+            console.log(__dirname)
             throw new Error('The repo does not exist.');
         }
-        if (this.workflowName!= undefined && this.workflowName != "" && !fs.existsSync(`./GHAhistorydata/${this.repoName}/${this.workflowName}`)) {
+        if (this.workflowName!= undefined && this.workflowName != "" && !fs.existsSync(`GHAhistorydata/${this.repoName}/${this.workflowName}`)) {
             throw new Error('The workflow does not exist.');
         }
 
-        const workflowFile = fs.readFileSync(`./GHAhistorydata/${this.repoName}/${this.repoName}_workflows.json`, 'utf-8');
+        const workflowFile = fs.readFileSync(`GHAhistorydata/${this.repoName}/${this.repoName}_workflows.json`, 'utf-8');
         let workflowsJson = JSON.parse(workflowFile);
 
         if(this.workflowName != undefined && this.workflowName != "") {

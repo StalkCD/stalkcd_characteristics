@@ -8,7 +8,7 @@ export class GHAFileSaver {
 
     saveFiles(history: GHAHistoryBuilder) {
 
-        this.createBaseDir();
+        this.createTargetDir(this.baseDir);
 
         this.targetDir = this.baseDir + "/" + history.repo?.name + "/";
         this.createTargetDir(this.targetDir);
@@ -58,21 +58,13 @@ export class GHAFileSaver {
 
             }
         }
+        console.log("Data saved");
     }
 
     fileWriter(path: string, content: string, ending: string) {
 
         let cont = JSON.stringify(content);
         fs.writeFile(path + ending,  cont, {encoding: 'utf8'}, err => {})
-    }
-    private createBaseDir() {
-        if(!fs.existsSync(this.baseDir)) {
-            fs.mkdir(this.baseDir, 0o777, (err: any) => {
-                if (err) {
-                    console.error(`Could not create directory '${this.baseDir}'`, err);
-                }
-            });
-        }
     }
 
     /**

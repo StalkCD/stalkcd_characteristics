@@ -2,13 +2,15 @@ import {DownloadGHAFilesAndLogs} from "./GHAFilesAndCharacteristics/DownloadGHAF
 import {GetKPIs} from "./GHAFilesAndCharacteristics/GetKPIs";
 import {GetWorkflowFile} from "./GHAFilesAndCharacteristics/GetWorkflowFile";
 import {GHAFileLoader} from "./GHAFilesAndCharacteristics/GHAFileLoader";
+import {DownloadGHABillingData} from "./GHAbillingdata/DownloadGHABillingData";
 
 enum Mode {
     Help,
     DownloadGHAFilesAndLogs,
     GetKPIs,
     GetWorkflowFile,
-    GHAFileLoader
+    GHAFileLoader,
+    DownloadGHABillingData
 }
 
 let mode: Mode = Mode.Help;
@@ -53,6 +55,14 @@ program.command('gha-file-loader')
     .option('-w, --workflow [workflow]', 'workflow of the repository')
     .action((cmd:String) => {
         mode = Mode.GHAFileLoader;
+        config = cmd;
+    })
+
+program.command('download-gha-billing-data')
+    .option('-o, --owner [owner]', 'owner of the repository')
+    .option('-t, --token [token]', 'token for the github api')
+    .action((cmd:String) => {
+        mode = Mode.DownloadGHABillingData;
         config = cmd;
     })
 
@@ -148,6 +158,23 @@ switch (+mode) {
         }
         new GHAFileLoader(repoNameForLoad, workflowNameForLoad).loadFiles();
         break;
+
+    /*
+    case Mode.DownloadGHABillingData:
+        let repoOwnerBilling = 'curl';
+        if (config.owner) {
+            repoOwnerBilling = config.owner;
+        }
+        let tokenBilling = '';
+        if(config.token) {
+            tokenBilling = config.token;
+        }
+
+        let saveBilling : boolean;
+        saveBilling = true;
+        new DownloadGHABillingData(repoOwnerBilling, tokenBilling).download(saveBilling); //TODO in der Schnittstelle berücksichtigen ob gespeichert werden soll
+        break;
+     */
 
     default:
         program.outputHelp();
