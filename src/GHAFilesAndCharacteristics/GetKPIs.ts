@@ -42,7 +42,7 @@ export class GetKPIs {
             if(this.token == undefined || this.token == "") {
                 throw new Error('No token available for download.');
             }
-            let loader: DownloadGHAFilesAndLogs = new DownloadGHAFilesAndLogs(this.repoOwnerForKPIs!, this.repoNameForKPIs, this.workflowNameForKPIs, this.token!);
+            let loader: DownloadGHAFilesAndLogs = new DownloadGHAFilesAndLogs(this.repoOwnerForKPIs, this.repoNameForKPIs, this.workflowNameForKPIs, this.token!);
             history = await loader.downloadFiles(save, saveType);
         }
         const runsFileJson = history.workflows![0].runsFile;
