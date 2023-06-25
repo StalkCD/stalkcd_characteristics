@@ -30,6 +30,7 @@ export class GetKPIs {
         if (this.load != 'local' && this.load != 'download') {
             throw new Error('No valid load type.');
         }
+        this.load = "";
         let history = new GHAHistoryBuilder();
         if(this.load == 'local') {
             let loader: GHAFileLoader = new GHAFileLoader(this.repoNameForKPIs, this.workflowNameForKPIs);
@@ -45,7 +46,8 @@ export class GetKPIs {
             let loader: DownloadGHAFilesAndLogs = new DownloadGHAFilesAndLogs(this.repoOwnerForKPIs, this.repoNameForKPIs, this.workflowNameForKPIs, this.token!);
             history = await loader.downloadFiles(save, saveType);
         }
-        const runsFileJson = history.workflows![0].runsFile;
+        let runsFile = fs.readFileSync(`./GHAhistorydata/${this.repoNameForKPIs}/${this.workflowNameForKPIs}/${this.workflowNameForKPIs}_runs.json`, 'utf-8');
+        const runsFileJson = JSON.parse(runsFile);
 
         let avgBuildDuration = this.getAvgBuildDuration(runsFileJson);
         let arrivalRate = await this.getArrivalRate(runsFileJson);
