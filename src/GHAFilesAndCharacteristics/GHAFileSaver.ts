@@ -3,8 +3,13 @@ import * as fs from "fs";
 
 export class GHAFileSaver {
 
-    private baseDir =  "GHAhistorydata";
-    private targetDir = this.baseDir + "/";
+    private baseDir: string;
+    private targetDir: string = "";
+
+    constructor(baseDir: string) {
+        this.baseDir = baseDir;
+    }
+
 
     saveFiles(history: GHAHistoryBuilder, saveType: string) {
 
@@ -48,7 +53,7 @@ export class GHAFileSaver {
                                 path = path + "jobid_" + history.runs![j].jobsFile.jobs![l].id + "/";
 
                                 let job = history.jobs?.find(({id}) => id === jobID);
-                                this.fileWriter(this.targetDir + path + "jobid_" + jobID + "_log", job!.logFile, ".json");
+                                this.textFileWriter(this.targetDir + path + "jobid_" + jobID + "_log", job!.logFile, ".json");
                                 this.fileWriter(this.targetDir + path + "jobid_" + jobID, history.runs![j].jobsFile.jobs![l], ".json");
                             }
                         }
@@ -65,6 +70,11 @@ export class GHAFileSaver {
 
         let cont = JSON.stringify(content);
         fs.writeFile(path + ending,  cont, {encoding: 'utf8'}, err => {})
+    }
+
+    textFileWriter(path: string, content: string, ending: string) {
+
+        fs.writeFile(path + ending,  content, {encoding: 'utf8'}, err => {})
     }
 
     /**

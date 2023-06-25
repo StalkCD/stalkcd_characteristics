@@ -33,7 +33,7 @@ export class GetWorkflowFile {
         const yamlContents = await yamlContentsResponse.text();
 
         if(save) {
-            let saver: GHAFileSaver = new GHAFileSaver();
+            let saver: GHAFileSaver = new GHAFileSaver("GHAWorkflowFiles");
             saver.createTargetDir("GHAWorkflowFiles");
             saver.createTargetDir("GHAWorkflowFiles/" + this.repoName);
             saver.createTargetDir("GHAWorkflowFiles/" + this.repoName + "/" + this.workflowName);

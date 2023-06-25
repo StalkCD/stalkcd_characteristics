@@ -1,6 +1,7 @@
 import fetch, {RequestInit, Response} from "node-fetch";
 import {GHAFileSaver} from "./GHAFileSaver";
 import {GHAHistoryBuilder} from "./GHAHistoryBuilder";
+import {log} from "util";
 
 const GITHUB_API_VERSION = 'application/vnd.github.v3+json'; // https://docs.github.com/en/rest/overview/resources-in-the-rest-api
 
@@ -26,44 +27,69 @@ export class DownloadGHAFilesAndLogs {
     async downloadFiles(save: boolean, saveType: string): Promise<GHAHistoryBuilder> {
 
         let history: GHAHistoryBuilder = new GHAHistoryBuilder();
+        let saver: GHAFileSaver = new GHAFileSaver("GHAhistorydata");
+        let path: string = "";
+        saver.createTargetDir("GHAhistorydata");
+        saver.createTargetDir("GHAhistorydata/" + this.repoName);
+        path = "GHAhistorydata/" + this.repoName + "/";
 
         try {
 
             let fileContents = await this.getAllWorkflows();
+            let workflowsJson: any = JSON.parse(fileContents);
+            saver.fileWriter(path + this.repoName + "_workflows", fileContents, ".json");
 
-            const workflowsJson: any = JSON.parse(fileContents);
-            const amountWorkflows = Object.keys(workflowsJson.workflows).length;
-            history.addRepo(this.repoName, workflowsJson);
-            /*
+            let reducedfileContents: any = this.reduceWorkflows(fileContents);
+            let reducedWorkflowsJson: any = JSON.parse(reducedfileContents);
+            const amountWorkflows = Object.keys(reducedWorkflowsJson.workflows).length;
+            //history.addRepo(this.repoName, workflowsJson);
+
             for (let i = 0; i < amountWorkflows; i++) {
-                if(workflowsJson.workflows![i] !== undefined) {
+                if(reducedWorkflowsJson.workflows![i] !== undefined) {
 
-                    const RunsOfWorkflow = await this.getRunsOfWorkflow(workflowsJson.workflows![i]);
+                    saver.createTargetDir(path + reducedWorkflowsJson.workflows![i].name);
+                    path = "GHAhistorydata/" + this.repoName + "/" + reducedWorkflowsJson.workflows![i].name + "/";
+                    saver.fileWriter(path + reducedWorkflowsJson.workflows![i].name, reducedWorkflowsJson, ".json");
+
+                    const RunsOfWorkflow = await this.getRunsOfWorkflow(reducedWorkflowsJson.workflows![i]);
                     const RunsOfWorkflowJson = JSON.parse(RunsOfWorkflow);
-                    history.addWorkflow(workflowsJson.workflows![i].id, RunsOfWorkflowJson);
+                    //history.addWorkflow(workflowsJson.workflows![i].id, RunsOfWorkflowJson);
 
+                    saver.fileWriter(path + reducedWorkflowsJson.workflows![i].name + "_runs", RunsOfWorkflowJson, ".json");
                     const amountRunsOfWorkflow = Object.keys(RunsOfWorkflowJson.workflow_runs).length;
 
                     for (let j = 0; j < amountRunsOfWorkflow; j++) {
+                        path = "GHAhistorydata/" + this.repoName + "/" + reducedWorkflowsJson.workflows![i].name + "/";
+                        saver.createTargetDir(path + "runid_" + RunsOfWorkflowJson.workflow_runs![j].id);
+                        path = path + "runid_" + RunsOfWorkflowJson.workflow_runs![j].id + "/";
+                        saver.fileWriter(path + "runid_" + RunsOfWorkflowJson.workflow_runs![j].id, RunsOfWorkflowJson.workflow_runs![j], ".json");
 
                         const jobsOfRun = await this.getJobsOfRun(RunsOfWorkflowJson.workflow_runs[j].id);
                         const jobsOfRunJson = JSON.parse(jobsOfRun);
-                        history.addRun(RunsOfWorkflowJson.workflow_runs[j].id, jobsOfRunJson);
+                        //history.addRun(RunsOfWorkflowJson.workflow_runs[j].id, jobsOfRunJson);
+
+                        saver.fileWriter(path + RunsOfWorkflowJson.workflow_runs![j].id + "_jobs", jobsOfRun, ".json")
 
                         const amountJobsOfRun = Object.keys(jobsOfRunJson.jobs).length;
 
                         for (let k = 0; k < amountJobsOfRun; k++) {
+                            path = "GHAhistorydata/" + this.repoName + "/" + reducedWorkflowsJson.workflows![i].name + "/" + "runid_" + RunsOfWorkflowJson.workflow_runs![j].id + "/";
+                            saver.createTargetDir(path + "jobid_" + jobsOfRunJson.jobs![k].id);
+                            path = path + "jobid_" + jobsOfRunJson.jobs![k].id + "/";
+                            saver.fileWriter(path + "jobid_" + jobsOfRunJson.jobs![k].id, jobsOfRunJson.jobs![k], ".json");
+
 
                             const logOfJob = await this.getLogOfJob(jobsOfRunJson.jobs![k].id);
-                            history.addJob(jobsOfRunJson.jobs![k].id, logOfJob)
+                            saver.textFileWriter(path + "jobid_" + jobsOfRunJson.jobs![k].id + "_log", logOfJob, ".txt");
+                            //history.addJob(jobsOfRunJson.jobs![k].id, logOfJob)
                         }
                     }
                 }
             }
 
-             */
+
+            save = false;
             if(save) {
-                let saver: GHAFileSaver = new GHAFileSaver();
                 saver.saveFiles(history, saveType);
             }
 
@@ -74,6 +100,18 @@ export class DownloadGHAFilesAndLogs {
         return history;
     }
 
+    private reduceWorkflows(fileContents: any): any {
+
+        let indexOfWorkflow = 0;
+        let fileContentsJson = JSON.parse(fileContents);
+        for(let i = 0; i < Object.keys(fileContentsJson.workflows).length; i++) {
+            if(fileContentsJson.workflows![i].name == this.workflowName) {
+                indexOfWorkflow = i;
+            }
+        }
+        fileContents = "{\"workflows\":[" + JSON.stringify(fileContentsJson.workflows![indexOfWorkflow]) + "]}";
+        return fileContents;
+    }
 
     private async getLogOfJob(jobId: any): Promise<any> {
         let fileContentsResponse = await this.tryFetch(`https://api.github.com/repos/${this.repoOwner}/${this.repoName}/actions/jobs/${jobId}/logs`);
@@ -98,7 +136,7 @@ export class DownloadGHAFilesAndLogs {
         let fileContents = await fileContentsResponse.text();
         let totalContents: any = fileContents.slice(0, -2);
         let linkMatch = /<([^>]*?)>; rel="next"/.exec(<string>fileContentsResponse.headers.get('link'));
-        while(page < 2 && fileContentsResponse.headers.get('link') !== null && linkMatch && linkMatch.length >= 2 ? linkMatch[1] : undefined) {
+        while(page < 1 && fileContentsResponse.headers.get('link') !== null && linkMatch && linkMatch.length >= 2 ? linkMatch[1] : undefined) {
             page = page + 1;
             fileContentsResponse = await this.tryFetch(`https://api.github.com/repos/${this.repoOwner}/${this.repoName}/actions/workflows/${workflow.id}/runs?per_page=100&page=${page}`);
             fileContents = await fileContentsResponse.text();
@@ -123,16 +161,6 @@ export class DownloadGHAFilesAndLogs {
         const fileContentsResponse = await this.tryFetch(`https://api.github.com/repos/${this.repoOwner}/${this.repoName}/actions/workflows`);
         let fileContentsJson: any = await fileContentsResponse.json();
         let fileContents = JSON.stringify(fileContentsJson);
-
-        if(this.workflowName != null && this.workflowName != "") {
-            let indexOfWorkflow = 0;
-            for(let i = 0; i < Object.keys(fileContentsJson.workflows!).length; i++) {
-                if(fileContentsJson.workflows![i].name == this.workflowName) {
-                    indexOfWorkflow = i;
-                }
-            }
-            fileContents = "{\"workflows\":[" + JSON.stringify(fileContentsJson.workflows![indexOfWorkflow]) + "]}";
-        }
 
         return fileContents;
     }
