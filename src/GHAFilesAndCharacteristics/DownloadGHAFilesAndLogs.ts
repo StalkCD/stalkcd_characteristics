@@ -1,7 +1,7 @@
 import fetch, {RequestInit, Response} from "node-fetch";
 import {GHAFileSaver} from "./GHAFileSaver";
 import {GHAHistoryBuilder} from "./GHAHistoryBuilder";
-import {saveAs} from 'file-saver';
+// import {saveAs} from 'file-saver';
 
 const GITHUB_API_VERSION = 'application/vnd.github.v3+json'; // https://docs.github.com/en/rest/overview/resources-in-the-rest-api
 
@@ -24,7 +24,7 @@ export class DownloadGHAFilesAndLogs {
     /**
      *
      */
-    async downloadFiles(save: boolean, saveType: string): Promise<GHAHistoryBuilder> {
+    async downloadFiles(saveType: string): Promise<GHAHistoryBuilder> {
 
         let history: GHAHistoryBuilder = new GHAHistoryBuilder();
         let saver: GHAFileSaver = new GHAFileSaver("GHAhistorydata");
@@ -96,12 +96,6 @@ export class DownloadGHAFilesAndLogs {
                     }
                 }
             }
-
-            save = false;
-            if (save) {
-                saver.saveFiles(history, saveType);
-            }
-
         } catch (err: any) {
             console.error();
         }

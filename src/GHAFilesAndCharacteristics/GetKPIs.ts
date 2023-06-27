@@ -1,7 +1,5 @@
-import {GHAHistoryBuilder} from "./GHAHistoryBuilder";
-import {GHAFileLoader} from "./GHAFileLoader";
-import {DownloadGHAFilesAndLogs} from "./DownloadGHAFilesAndLogs";
 import { Kpis } from '../models/Kpis';
+import * as fs from "fs";
 
 export class GetKPIs {
 

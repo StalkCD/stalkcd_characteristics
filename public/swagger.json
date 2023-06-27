@@ -1,0 +1,207 @@
+{
+	"components": {
+		"examples": {},
+		"headers": {},
+		"parameters": {},
+		"requestBodies": {},
+		"responses": {},
+		"schemas": {
+			"PingResponse": {
+				"properties": {
+					"message": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"message"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"IApiResponse": {
+				"properties": {
+					"message": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"message"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"IDownloadConfig": {
+				"properties": {
+					"repoName": {
+						"type": "string"
+					},
+					"repoOwner": {
+						"type": "string"
+					},
+					"workflowName": {
+						"type": "string"
+					},
+					"gitHubToken": {
+						"type": "string"
+					},
+					"saveType": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"repoName",
+					"repoOwner",
+					"workflowName",
+					"gitHubToken",
+					"saveType"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"Kpis": {
+				"properties": {
+					"avgBuildDuration": {
+						"type": "number",
+						"format": "double"
+					},
+					"arrivalRate": {
+						"items": {},
+						"type": "array"
+					},
+					"buildResults": {
+						"items": {},
+						"type": "array"
+					}
+				},
+				"required": [
+					"avgBuildDuration",
+					"arrivalRate",
+					"buildResults"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"IKpisConfig": {
+				"properties": {
+					"repoName": {
+						"type": "string"
+					},
+					"workflowName": {
+						"type": "string"
+					},
+					"load": {
+						"type": "string"
+					},
+					"saveType": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"repoName",
+					"workflowName",
+					"load",
+					"saveType"
+				],
+				"type": "object",
+				"additionalProperties": false
+			}
+		},
+		"securitySchemes": {}
+	},
+	"info": {
+		"title": "stalkcd_characteristics",
+		"version": "1.0.0",
+		"contact": {}
+	},
+	"openapi": "3.0.0",
+	"paths": {
+		"/ping": {
+			"get": {
+				"operationId": "GetMessage",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PingResponse"
+								}
+							}
+						}
+					}
+				},
+				"security": [],
+				"parameters": []
+			}
+		},
+		"/download": {
+			"post": {
+				"operationId": "DownloadGHAFilesAndLogs",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/IApiResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Download"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/IDownloadConfig"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/kpis": {
+			"post": {
+				"operationId": "GetKPIs",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Kpis"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"KPIs"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/IKpisConfig"
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"servers": [
+		{
+			"url": "/"
+		}
+	]
+}

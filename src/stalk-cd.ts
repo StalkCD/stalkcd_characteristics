@@ -2,7 +2,6 @@ import {DownloadGHAFilesAndLogs} from "./GHAFilesAndCharacteristics/DownloadGHAF
 import {GetKPIs} from "./GHAFilesAndCharacteristics/GetKPIs";
 import {GetWorkflowFile} from "./GHAFilesAndCharacteristics/GetWorkflowFile";
 import {GHAFileLoader} from "./GHAFilesAndCharacteristics/GHAFileLoader";
-import {DownloadGHABillingData} from "./GHAbillingdata/DownloadGHABillingData";
 
 enum Mode {
     Help,
@@ -98,7 +97,7 @@ switch (+mode) {
         let save : boolean;
         save = true;
         let saveType: string = "db";
-        new DownloadGHAFilesAndLogs(repoOwner, repoName, workflowName, token).downloadFiles(save, saveType); //TODO in der Schnittstelle berücksichtigen ob gespeichert werden soll
+        new DownloadGHAFilesAndLogs(repoOwner, repoName, workflowName, token).downloadFiles(saveType); //TODO in der Schnittstelle berücksichtigen ob gespeichert werden soll
         break;
 
     case Mode.GetKPIs:
