@@ -1,8 +1,7 @@
-import * as fs from 'fs';
-import { Kpis } from '../DTOs/kpis';
 import {GHAHistoryBuilder} from "./GHAHistoryBuilder";
 import {GHAFileLoader} from "./GHAFileLoader";
 import {DownloadGHAFilesAndLogs} from "./DownloadGHAFilesAndLogs";
+import { Kpis } from '../models/Kpis';
 
 export class GetKPIs {
 

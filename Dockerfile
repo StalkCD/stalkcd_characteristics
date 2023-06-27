@@ -1,15 +1,13 @@
-# syntax=docker/dockerfile:1
+FROM node:20
 
-FROM node
+WORKDIR /app
 
-
-COPY tsconfig.json ./
 COPY package*.json ./
+
+RUN npm install 
+
 COPY . .
 
-RUN npm install typescript -g
-RUN npm install
-RUN tsc
+EXPOSE 8001
 
-EXPOSE 6060
-CMD [ "node", "dist/server.js" ]
+CMD [ "npm", "run", "dev"]
