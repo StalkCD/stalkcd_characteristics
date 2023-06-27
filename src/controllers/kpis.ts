@@ -9,7 +9,7 @@ const getKPIs = async (req: Request, res: Response) => {
     let save: boolean = false; //TODO Anpassen
     let saveType: string = "db" //TODO über Schnittstelle abfragen
 
-    let kpis: Kpis = await new GetKPIs(repoNameForKPIs, workflowNameForKPIs, load).getKPIs(save, saveType);
+    let kpis: Kpis = await new GetKPIs(repoNameForKPIs, workflowNameForKPIs, load).getKPIs(saveType);
   
     return res.status(200).json({kpis});
   };

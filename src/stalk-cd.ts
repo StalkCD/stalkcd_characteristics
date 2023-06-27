@@ -124,7 +124,7 @@ switch (+mode) {
         }
         let saveForKPIs = true;
         let saveTypeForKPIs = "db";
-        new GetKPIs(repoNameForKPIs, workflowNameForKPIs, load, repoOwnerForKPIs, tokenForKPIs).getKPIs(saveForKPIs, saveTypeForKPIs);
+        new GetKPIs(repoNameForKPIs, workflowNameForKPIs,repoOwnerForKPIs, tokenForKPIs).getKPIs(saveTypeForKPIs);
         break;
 
     case Mode.GetWorkflowFile:

@@ -8,15 +8,13 @@ export class GetKPIs {
 
     repoNameForKPIs: string;
     workflowNameForKPIs: string;
-    load: string;
     repoOwnerForKPIs: string | undefined;
     token: string | undefined;
 
-    constructor(repoNameForKPIs: string, workflowNameForKPIs: string, load: string, repoOwnerForKPIs?: string, token?: string) {
+    constructor(repoNameForKPIs: string, workflowNameForKPIs: string, repoOwnerForKPIs?: string, token?: string) {
 
         this.repoNameForKPIs = repoNameForKPIs;
         this.workflowNameForKPIs = workflowNameForKPIs;
-        this.load = load;
         if(repoOwnerForKPIs != undefined && repoOwnerForKPIs != "") {
             this.repoOwnerForKPIs = repoOwnerForKPIs;
         }
@@ -25,8 +23,9 @@ export class GetKPIs {
         }
     }
 
-    async getKPIs(save: boolean, saveType: string): Promise<Kpis> {
+    async getKPIs(saveType: string): Promise<Kpis> {
 
+        /*
         if (this.load != 'local' && this.load != 'download') {
             throw new Error('No valid load type.');
         }
@@ -46,6 +45,8 @@ export class GetKPIs {
             let loader: DownloadGHAFilesAndLogs = new DownloadGHAFilesAndLogs(this.repoOwnerForKPIs, this.repoNameForKPIs, this.workflowNameForKPIs, this.token!);
             history = await loader.downloadFiles(save, saveType);
         }
+
+         */
         let runsFile = fs.readFileSync(`./GHAhistorydata/${this.repoNameForKPIs}/${this.workflowNameForKPIs}/${this.workflowNameForKPIs}_runs.json`, 'utf-8');
         const runsFileJson = JSON.parse(runsFile);
 
