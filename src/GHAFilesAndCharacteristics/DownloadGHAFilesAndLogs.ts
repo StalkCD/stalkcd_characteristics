@@ -29,8 +29,8 @@ export class DownloadGHAFilesAndLogs {
         let history: GHAHistoryBuilder = new GHAHistoryBuilder();
         let saver: GHAFileSaver = new GHAFileSaver("GHAhistorydata");
         let path: string = "";
-        saver.createTargetDir("GHAhistorydata");
-        saver.createTargetDir("GHAhistorydata/" + this.repoName);
+        await saver.createTargetDir("GHAhistorydata");
+        await saver.createTargetDir("GHAhistorydata/" + this.repoName);
         path = "GHAhistorydata/" + this.repoName + "/";
 
         try {
