@@ -88,17 +88,13 @@
 					"workflowName": {
 						"type": "string"
 					},
-					"load": {
-						"type": "string"
-					},
 					"loadFrom": {
 						"type": "string"
 					}
 				},
 				"required": [
 					"repoName",
-					"workflowName",
-					"load"
+					"workflowName"
 				],
 				"type": "object",
 				"additionalProperties": false

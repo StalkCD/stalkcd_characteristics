@@ -13,11 +13,6 @@ export default class DownloadController {
     let workflowName: string = body.workflowName;
     let gitHubToken: string = body.gitHubToken;
     let saveTo: string = body.saveTo || "local";
-    // let repoName: string = 'hibernate-orm';
-    // let repoOwner: string = 'hibernate';
-    // let workflowName: string = 'CodeQL';
-    // let gitHubToken: string = 'GitHubToken';
-    // let saveType: string = "db"
 
     await new DownloadGHAFilesAndLogs(repoOwner, repoName, workflowName, gitHubToken).downloadFiles(saveTo);
 
