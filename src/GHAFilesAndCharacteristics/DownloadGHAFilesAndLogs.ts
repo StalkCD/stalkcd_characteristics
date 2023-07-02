@@ -69,16 +69,19 @@ export class DownloadGHAFilesAndLogs {
                         const jobsOfRunJson = JSON.parse(jobsOfRun);
                         //history.addRun(RunsOfWorkflowJson.workflow_runs[j].id, jobsOfRunJson);
 
-                        saver.fileWriter(path + RunsOfWorkflowJson.workflow_runs![j].id + "_jobs", jobsOfRun, ".json")
+                        saver.fileWriter(path + RunsOfWorkflowJson.workflow_runs![j].id + "_jobs", jobsOfRunJson, ".json")
 
 
                         // Tried to download Logs of Run https://docs.github.com/en/rest/actions/workflow-runs?apiVersion=2022-11-28#download-workflow-run-logs
+                        /*
                         try {
                             const logOfRun = await this.getLogOfRun(RunsOfWorkflowJson.workflow_runs[j].id);
 
                         } catch (err: any) {
                             console.log(err.message);
                         }
+
+                         */
 
                         const amountJobsOfRun = Object.keys(jobsOfRunJson.jobs).length;
 

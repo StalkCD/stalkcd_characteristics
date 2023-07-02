@@ -26,7 +26,7 @@ export class GetWorkflowFile {
         const path = ".github/workflows/" + workflowLC + ".yml";
         const fileContentsResponse = await this.tryFetch(`https://api.github.com/repos/${this.repoOwner}/${this.repoName}/contents/${path}`);
         const fileContentsJson: any = await fileContentsResponse.json();
-        const fileContents = JSON.stringify(fileContentsJson);
+        JSON.stringify(fileContentsJson);
 
         const url: string = fileContentsJson.download_url;
         const yamlContentsResponse = await this.tryFetch(url);
@@ -35,11 +35,12 @@ export class GetWorkflowFile {
         if(save) {
             let saver: GHAFileSaver = new GHAFileSaver("GHAWorkflowFiles");
             saver.createTargetDir("GHAWorkflowFiles");
-            saver.createTargetDir("GHAWorkflowFiles/" + this.repoName);
-            saver.createTargetDir("GHAWorkflowFiles/" + this.repoName + "/" + this.workflowName);
+            await saver.createTargetDir("GHAWorkflowFiles/" + this.repoName);
+            await saver.createTargetDir("GHAWorkflowFiles/" + this.repoName + "/" + this.workflowName);
             let path = "GHAWorkflowFiles/" + this.repoName + "/" + this.workflowName
             saver.fileWriter(path + "/" + this.workflowName, yamlContents, ".yml");
         }
+
 
 
         return yamlContents;

@@ -2,6 +2,7 @@ import {DownloadGHAFilesAndLogs} from "./GHAFilesAndCharacteristics/DownloadGHAF
 import {GetKPIs} from "./GHAFilesAndCharacteristics/GetKPIs";
 import {GetWorkflowFile} from "./GHAFilesAndCharacteristics/GetWorkflowFile";
 import {GHAFileLoader} from "./GHAFilesAndCharacteristics/GHAFileLoader";
+import {AmountWorkflowsAndRunsTest} from "./AmountWorkflowsAndRunsTest";
 
 enum Mode {
     Help,
@@ -9,7 +10,8 @@ enum Mode {
     GetKPIs,
     GetWorkflowFile,
     GHAFileLoader,
-    DownloadGHABillingData
+    DownloadGHABillingData,
+    AmountWorkflowsAndRunsTest
 }
 
 let mode: Mode = Mode.Help;
@@ -62,6 +64,13 @@ program.command('download-gha-billing-data')
     .option('-t, --token [token]', 'token for the github api')
     .action((cmd:String) => {
         mode = Mode.DownloadGHABillingData;
+        config = cmd;
+    })
+
+program.command('amount-test')
+    .option('-t, --token [token]', 'token for the github api')
+    .action((cmd:String) => {
+        mode = Mode.AmountWorkflowsAndRunsTest;
         config = cmd;
     })
 
@@ -159,6 +168,11 @@ switch (+mode) {
             workflowNameForLoad = config.workflow;
         }
         new GHAFileLoader(repoNameForLoad, workflowNameForLoad).loadFiles();
+        break;
+
+    case Mode.AmountWorkflowsAndRunsTest:
+        let tokenTest: string = config.token;
+        new AmountWorkflowsAndRunsTest().calc(tokenTest);
         break;
 
     /*
