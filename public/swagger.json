@@ -44,7 +44,7 @@
 					"gitHubToken": {
 						"type": "string"
 					},
-					"saveType": {
+					"saveTo": {
 						"type": "string"
 					}
 				},
@@ -52,8 +52,7 @@
 					"repoName",
 					"repoOwner",
 					"workflowName",
-					"gitHubToken",
-					"saveType"
+					"gitHubToken"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -89,18 +88,13 @@
 					"workflowName": {
 						"type": "string"
 					},
-					"load": {
-						"type": "string"
-					},
-					"saveType": {
+					"loadFrom": {
 						"type": "string"
 					}
 				},
 				"required": [
 					"repoName",
-					"workflowName",
-					"load",
-					"saveType"
+					"workflowName"
 				],
 				"type": "object",
 				"additionalProperties": false
