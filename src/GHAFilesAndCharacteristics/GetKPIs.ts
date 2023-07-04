@@ -1,5 +1,7 @@
 import { Kpis } from '../models/Kpis';
 import * as fs from "fs";
+import {Connection} from "../database/Connection";
+import {MongoClient} from "mongodb";
 
 
 export class GetKPIs {
@@ -21,7 +23,7 @@ export class GetKPIs {
         }
     }
 
-    async getKPIs(saveType: string): Promise<Kpis> {
+    async getKPIs(loadFrom: string): Promise<Kpis> {
 
         /*
         if (this.load != 'local' && this.load != 'download') {
@@ -45,8 +47,23 @@ export class GetKPIs {
         }
 
          */
-        let runsFile = fs.readFileSync(`./GHAhistorydata/${this.repoNameForKPIs}/${this.workflowNameForKPIs}/${this.workflowNameForKPIs}_runs.json`, 'utf-8');
-        const runsFileJson = JSON.parse(runsFile);
+        let runsFile: any;
+        let runsFileJson: any;
+        if(loadFrom == 'local') {
+            console.log("local");
+            runsFile = await fs.readFileSync(`./GHAhistorydata/${this.repoNameForKPIs}/${this.workflowNameForKPIs}/${this.workflowNameForKPIs}_runs.json`, 'utf-8');
+            runsFileJson = await JSON.parse(runsFile);
+        } else if(loadFrom == 'db') {
+            console.log("db");
+            let connection: Connection = new Connection();
+            let dbs: MongoClient | undefined;
+            dbs = await connection.getConnection();
+            let db = await dbs.db("GHAhistorydata");
+            runsFileJson = await db.collection(this.repoNameForKPIs).findOne({"file" : "workflow_runs", "workflowname" : this.workflowNameForKPIs});
+            dbs.close();
+        } else {
+            console.error("No valid load type.");
+        }
 
         let avgBuildDuration = this.getAvgBuildDuration(runsFileJson);
         let arrivalRate = await this.getArrivalRate(runsFileJson);

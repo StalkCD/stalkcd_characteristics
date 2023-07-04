@@ -131,8 +131,8 @@ switch (+mode) {
             tokenForKPIs = config.token;
         }
         let saveForKPIs = true;
-        let saveTypeForKPIs = "db";
-        new GetKPIs(repoNameForKPIs, workflowNameForKPIs,repoOwnerForKPIs, tokenForKPIs).getKPIs(saveTypeForKPIs);
+        let loadFrom = "db";
+        new GetKPIs(repoNameForKPIs, workflowNameForKPIs,repoOwnerForKPIs, tokenForKPIs).getKPIs(load);
         break;
 
     case Mode.GetWorkflowFile:

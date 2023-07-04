@@ -144,6 +144,7 @@ export class DownloadGHAFilesAndLogs {
             const RunsOfWorkflow = await this.getRunsOfWorkflow(reducedWorkflowsJson.workflows![i]);
             const RunsOfWorkflowJson = await JSON.parse(RunsOfWorkflow);
             RunsOfWorkflowJson["workflowid"] = reducedWorkflowsJson.workflows![i].id;
+            RunsOfWorkflowJson["workflowname"] = reducedWorkflowsJson.workflows![i].name;
             RunsOfWorkflowJson["file"] = "workflow_runs";
             await db.collection(this.repoName).insertOne(RunsOfWorkflowJson);
 
