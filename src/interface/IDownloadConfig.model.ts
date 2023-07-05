@@ -4,4 +4,5 @@ export interface IDownloadConfig {
     workflowName: string;
     gitHubToken: string;
     saveTo?: string;
+    depth?: number;
 }

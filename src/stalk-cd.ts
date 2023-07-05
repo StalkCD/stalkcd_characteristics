@@ -27,6 +27,7 @@ program.command('download-ghafiles-and-logs')
     .option('-n, --name [name]', 'name of the repository')
     .option('-w, --workflow [workflow]', 'workflow of the repository')
     .option('-t, --token [token]', 'token for the github api')
+    .option('-d, --depth [depth]', 'determine what to download 1:workflow, 2:runs, 3:jobs, 4:logs')
     .action((cmd:String) => {
         mode = Mode.DownloadGHAFilesAndLogs;
         config = cmd;
@@ -105,8 +106,12 @@ switch (+mode) {
 
         let save : boolean;
         save = true;
-        let saveType: string = "db";
-        new DownloadGHAFilesAndLogs(repoOwner, repoName, workflowName, token).downloadFiles(saveType); //TODO in der Schnittstelle berücksichtigen ob gespeichert werden soll
+        let saveType: string = "local";
+        let depth: number = 4;
+        if(config.depth) {
+            depth = config.depth;
+        }
+        new DownloadGHAFilesAndLogs(repoOwner, repoName, workflowName, token).downloadFiles(saveType, depth); //TODO in der Schnittstelle berücksichtigen ob gespeichert werden soll
         break;
 
     case Mode.GetKPIs:

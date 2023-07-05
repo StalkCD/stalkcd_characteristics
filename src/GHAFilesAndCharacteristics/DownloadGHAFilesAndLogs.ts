@@ -26,151 +26,172 @@ export class DownloadGHAFilesAndLogs {
     /**
      *
      */
-    async downloadFiles(saveType: string) {
+    async downloadFiles(saveType: string, depth: number) {
 
         if(saveType == 'db') {
-            await this.downloadToMongoDB();
+            await this.downloadToMongoDB(depth);
         } else {
 
-            let history: GHAHistoryBuilder = new GHAHistoryBuilder();
-            let saver: GHAFileSaver = new GHAFileSaver("GHAhistorydata");
-            let path: string = "";
-            await saver.createTargetDir("GHAhistorydata");
-            await saver.createTargetDir("GHAhistorydata/" + this.repoName);
-            path = "GHAhistorydata/" + this.repoName + "/";
+            if(depth >= 1) {
+                let history: GHAHistoryBuilder = new GHAHistoryBuilder();
+                let saver: GHAFileSaver = new GHAFileSaver("GHAhistorydata");
+                let path: string = "";
+                await saver.createTargetDir("GHAhistorydata");
+                await saver.createTargetDir("GHAhistorydata/" + this.repoName);
+                path = "GHAhistorydata/" + this.repoName + "/";
 
-            try {
+                try {
 
-                let fileContents = await this.getAllWorkflows();
-                let workflowsJson: any = JSON.parse(fileContents);
+                    let fileContents = await this.getAllWorkflows();
+                    let workflowsJson: any = JSON.parse(fileContents);
 
-                saver.fileWriter(path + this.repoName + "_workflows", fileContents, ".json");
+                    saver.fileWriter(path + this.repoName + "_workflows", fileContents, ".json");
+
+                    let reducedfileContents: any = this.reduceWorkflows(fileContents);
+                    let reducedWorkflowsJson: any = JSON.parse(reducedfileContents);
+                    const amountWorkflows = Object.keys(reducedWorkflowsJson.workflows).length;
+                    //history.addRepo(this.repoName, workflowsJson);
+
+                    for (let i = 0; i < amountWorkflows; i++) {
+                        if (reducedWorkflowsJson.workflows![i] !== undefined) {
+
+                            saver.createTargetDir(path + reducedWorkflowsJson.workflows![i].name);
+                            path = "GHAhistorydata/" + this.repoName + "/" + reducedWorkflowsJson.workflows![i].name + "/";
+                            saver.fileWriter(path + reducedWorkflowsJson.workflows![i].name, reducedWorkflowsJson, ".json");
+
+                            if(depth >= 2) {
+                                const RunsOfWorkflow = await this.getRunsOfWorkflow(reducedWorkflowsJson.workflows![i]);
+                                const RunsOfWorkflowJson = JSON.parse(RunsOfWorkflow);
+                                //history.addWorkflow(workflowsJson.workflows![i].id, RunsOfWorkflowJson);
+
+                                saver.fileWriter(path + reducedWorkflowsJson.workflows![i].name + "_runs", RunsOfWorkflowJson, ".json");
+                                if(depth >= 3) {
+                                    const amountRunsOfWorkflow = Object.keys(RunsOfWorkflowJson.workflow_runs).length;
+
+                                    for (let j = 0; j < amountRunsOfWorkflow; j++) {
+
+                                    path = "GHAhistorydata/" + this.repoName + "/" + reducedWorkflowsJson.workflows![i].name + "/";
+                                    saver.createTargetDir(path + "runid_" + RunsOfWorkflowJson.workflow_runs![j].id);
+                                    path = path + "runid_" + RunsOfWorkflowJson.workflow_runs![j].id + "/";
+
+                                    saver.fileWriter(path + "runid_" + RunsOfWorkflowJson.workflow_runs![j].id, RunsOfWorkflowJson.workflow_runs![j], ".json");
+
+                                        const jobsOfRun = await this.getJobsOfRun(RunsOfWorkflowJson.workflow_runs[j].id);
+                                        const jobsOfRunJson = JSON.parse(jobsOfRun);
+                                        //history.addRun(RunsOfWorkflowJson.workflow_runs[j].id, jobsOfRunJson);
+
+                                        saver.fileWriter(path + RunsOfWorkflowJson.workflow_runs![j].id + "_jobs", jobsOfRunJson, ".json")
+
+                                        if(depth >= 4) {
+
+                                        // Tried to download Logs of Run https://docs.github.com/en/rest/actions/workflow-runs?apiVersion=2022-11-28#download-workflow-run-logs
+                                        //try {
+                                        //    const logOfRun = await this.getLogOfRun(RunsOfWorkflowJson.workflow_runs[j].id);
+                                        //} catch (err: any) {
+                                        //    console.log(err.message);
+                                        //}
+                                        const amountJobsOfRun = Object.keys(jobsOfRunJson.jobs).length;
+
+                                        for (let k = 0; k < amountJobsOfRun; k++) {
+                                            path = "GHAhistorydata/" + this.repoName + "/" + reducedWorkflowsJson.workflows![i].name + "/" + "runid_" + RunsOfWorkflowJson.workflow_runs![j].id + "/";
+                                            saver.createTargetDir(path + "jobid_" + jobsOfRunJson.jobs![k].id);
+                                            path = path + "jobid_" + jobsOfRunJson.jobs![k].id + "/";
+                                            saver.fileWriter(path + "jobid_" + jobsOfRunJson.jobs![k].id, jobsOfRunJson.jobs![k], ".json");
 
 
+                                                const logOfJob = await this.getLogOfJob(jobsOfRunJson.jobs![k].id);
+                                                saver.textFileWriter(path + "jobid_" + jobsOfRunJson.jobs![k].id + "_log", logOfJob, ".txt");
+                                                //history.addJob(jobsOfRunJson.jobs![k].id, logOfJob)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                } catch (err: any) {
+                    console.error();
+                }
+            } else {
+                console.log("No valid depth");
+            }
+            //return history;
+        }
+    }
+
+     private async downloadToMongoDB(depth: number) {
+
+        if(depth >= 1) {
+            let connection: Connection = new Connection();
+            let dbs: MongoClient | undefined;
+            dbs = await connection.getConnection();
+            let db = await dbs.db("GHAhistorydata");
+            let coll: any[] = await db.listCollections().toArray();
+            let collExists: boolean = false;
+
+            coll.forEach(coll => {
+                if (coll.name == this.repoName) {
+                    collExists = true;
+                    console.log("exists");
+                    db.dropCollection(this.repoName);
+                }
+            })
+            if (!collExists) {
+                await db.createCollection(this.repoName);
+            }
+
+            let fileContents = await this.getAllWorkflows();
+            let workflowsJson: any = JSON.parse(fileContents);
+            workflowsJson["file"] = "workflows";
+            await db.collection(this.repoName).insertOne(workflowsJson);
+
+            if(depth >= 2) {
                 let reducedfileContents: any = this.reduceWorkflows(fileContents);
                 let reducedWorkflowsJson: any = JSON.parse(reducedfileContents);
                 const amountWorkflows = Object.keys(reducedWorkflowsJson.workflows).length;
-                //history.addRepo(this.repoName, workflowsJson);
 
                 for (let i = 0; i < amountWorkflows; i++) {
-                    if (reducedWorkflowsJson.workflows![i] !== undefined) {
+                    const RunsOfWorkflow = await this.getRunsOfWorkflow(reducedWorkflowsJson.workflows![i]);
+                    const RunsOfWorkflowJson = await JSON.parse(RunsOfWorkflow);
+                    RunsOfWorkflowJson["workflowid"] = reducedWorkflowsJson.workflows![i].id;
+                    RunsOfWorkflowJson["workflowname"] = reducedWorkflowsJson.workflows![i].name;
+                    RunsOfWorkflowJson["file"] = "workflow_runs";
+                    await db.collection(this.repoName).insertOne(RunsOfWorkflowJson);
 
-                        saver.createTargetDir(path + reducedWorkflowsJson.workflows![i].name);
-                        path = "GHAhistorydata/" + this.repoName + "/" + reducedWorkflowsJson.workflows![i].name + "/";
-                        saver.fileWriter(path + reducedWorkflowsJson.workflows![i].name, reducedWorkflowsJson, ".json");
-
-                        const RunsOfWorkflow = await this.getRunsOfWorkflow(reducedWorkflowsJson.workflows![i]);
-                        const RunsOfWorkflowJson = JSON.parse(RunsOfWorkflow);
-                        //history.addWorkflow(workflowsJson.workflows![i].id, RunsOfWorkflowJson);
-
-                        saver.fileWriter(path + reducedWorkflowsJson.workflows![i].name + "_runs", RunsOfWorkflowJson, ".json");
+                    if(depth >= 3) {
                         const amountRunsOfWorkflow = Object.keys(RunsOfWorkflowJson.workflow_runs).length;
 
                         for (let j = 0; j < amountRunsOfWorkflow; j++) {
-                            path = "GHAhistorydata/" + this.repoName + "/" + reducedWorkflowsJson.workflows![i].name + "/";
-                            saver.createTargetDir(path + "runid_" + RunsOfWorkflowJson.workflow_runs![j].id);
-                            path = path + "runid_" + RunsOfWorkflowJson.workflow_runs![j].id + "/";
-
-                            saver.fileWriter(path + "runid_" + RunsOfWorkflowJson.workflow_runs![j].id, RunsOfWorkflowJson.workflow_runs![j], ".json");
 
                             const jobsOfRun = await this.getJobsOfRun(RunsOfWorkflowJson.workflow_runs[j].id);
                             const jobsOfRunJson = JSON.parse(jobsOfRun);
-                            //history.addRun(RunsOfWorkflowJson.workflow_runs[j].id, jobsOfRunJson);
+                            jobsOfRunJson["runid"] = RunsOfWorkflowJson.workflow_runs[j].id;
+                            jobsOfRunJson["file"] = "jobs";
 
-                            saver.fileWriter(path + RunsOfWorkflowJson.workflow_runs![j].id + "_jobs", jobsOfRunJson, ".json")
+                            await db.collection(this.repoName).insertOne(jobsOfRunJson);
 
+                            if(depth >= 4) {
+                                const amountJobsOfRun = Object.keys(jobsOfRunJson.jobs).length;
 
-                            // Tried to download Logs of Run https://docs.github.com/en/rest/actions/workflow-runs?apiVersion=2022-11-28#download-workflow-run-logs
-                            //try {
-                            //    const logOfRun = await this.getLogOfRun(RunsOfWorkflowJson.workflow_runs[j].id);
-                            //} catch (err: any) {
-                            //    console.log(err.message);
-                            //}
+                                for (let k = 0; k < amountJobsOfRun; k++) {
 
-                            const amountJobsOfRun = Object.keys(jobsOfRunJson.jobs).length;
+                                    const logOfJob = await this.getLogOfJob(jobsOfRunJson.jobs![k].id);
 
-                            for (let k = 0; k < amountJobsOfRun; k++) {
-                                path = "GHAhistorydata/" + this.repoName + "/" + reducedWorkflowsJson.workflows![i].name + "/" + "runid_" + RunsOfWorkflowJson.workflow_runs![j].id + "/";
-                                saver.createTargetDir(path + "jobid_" + jobsOfRunJson.jobs![k].id);
-                                path = path + "jobid_" + jobsOfRunJson.jobs![k].id + "/";
-                                saver.fileWriter(path + "jobid_" + jobsOfRunJson.jobs![k].id, jobsOfRunJson.jobs![k], ".json");
-
-
-                                const logOfJob = await this.getLogOfJob(jobsOfRunJson.jobs![k].id);
-                                saver.textFileWriter(path + "jobid_" + jobsOfRunJson.jobs![k].id + "_log", logOfJob, ".txt");
-                                //history.addJob(jobsOfRunJson.jobs![k].id, logOfJob)
+                                    await db.collection(this.repoName).insertOne({
+                                        "file": "log",
+                                        "jobid": jobsOfRunJson.jobs![k].id,
+                                        content: logOfJob
+                                    });
+                                }
                             }
                         }
                     }
                 }
-
-            } catch (err: any) {
-                console.error();
             }
-            return history;
+
+            dbs.close();
         }
-    }
-
-     private async downloadToMongoDB() {
-
-        let connection: Connection = new Connection();
-        let dbs: MongoClient | undefined;
-        dbs = await connection.getConnection();
-        let db = await dbs.db("GHAhistorydata");
-        let coll: any[] = await db.listCollections().toArray();
-        let collExists: boolean = false;
-
-        coll.forEach(coll => {
-            if(coll.name == this.repoName) {
-                collExists = true;
-                console.log("exists");
-                db.dropCollection(this.repoName);
-            }
-        })
-        if(!collExists) {
-            await db.createCollection(this.repoName);
-        }
-
-        let fileContents = await this.getAllWorkflows();
-        let workflowsJson: any = JSON.parse(fileContents);
-        workflowsJson["file"] = "workflows";
-        await db.collection(this.repoName).insertOne(workflowsJson);
-
-        let reducedfileContents: any = this.reduceWorkflows(fileContents);
-        let reducedWorkflowsJson: any = JSON.parse(reducedfileContents);
-        const amountWorkflows = Object.keys(reducedWorkflowsJson.workflows).length;
-
-        for(let i = 0; i < amountWorkflows; i++) {
-            const RunsOfWorkflow = await this.getRunsOfWorkflow(reducedWorkflowsJson.workflows![i]);
-            const RunsOfWorkflowJson = await JSON.parse(RunsOfWorkflow);
-            RunsOfWorkflowJson["workflowid"] = reducedWorkflowsJson.workflows![i].id;
-            RunsOfWorkflowJson["workflowname"] = reducedWorkflowsJson.workflows![i].name;
-            RunsOfWorkflowJson["file"] = "workflow_runs";
-            await db.collection(this.repoName).insertOne(RunsOfWorkflowJson);
-
-            const amountRunsOfWorkflow = Object.keys(RunsOfWorkflowJson.workflow_runs).length;
-
-            for (let j = 0; j < amountRunsOfWorkflow; j++) {
-
-                const jobsOfRun = await this.getJobsOfRun(RunsOfWorkflowJson.workflow_runs[j].id);
-                const jobsOfRunJson = JSON.parse(jobsOfRun);
-                jobsOfRunJson["runid"] = RunsOfWorkflowJson.workflow_runs[j].id;
-                jobsOfRunJson["file"] = "jobs";
-
-                await db.collection(this.repoName).insertOne(jobsOfRunJson);
-
-                const amountJobsOfRun = Object.keys(jobsOfRunJson.jobs).length;
-
-                for (let k = 0; k < amountJobsOfRun; k++) {
-
-                    const logOfJob = await this.getLogOfJob(jobsOfRunJson.jobs![k].id);
-
-                    await db.collection(this.repoName).insertOne({"file": "log", "jobid": jobsOfRunJson.jobs![k].id, content:logOfJob});
-                }
-            }
-        }
-
-        dbs.close();
     }
 
     private reduceWorkflows(fileContents: any): any {
