@@ -71,7 +71,7 @@ export class GetKPIs {
             dbs = await connection.getConnection();
             let db = await dbs.db("GHAhistorydata");
             runsFileJson = await db.collection(this.repoNameForKPIs).findOne({"file" : "workflow_runs", "workflowname" : this.workflowNameForKPIs});
-            let cursor = await db.collection(this.repoNameForKPIs).find({"file" : "jobs"})
+            let cursor = await db.collection(this.repoNameForKPIs).find({"file" : "jobs"});
             for await (const doc of cursor) {
                 jobFilesJson.push(doc);
             }
@@ -80,12 +80,25 @@ export class GetKPIs {
             console.error("No valid load type.");
         }
 
-        let avgBuildDuration = this.getAvgBuildDuration(runsFileJson);
-        let arrivalRate = await this.getArrivalRate(runsFileJson);
-        let buildResults = this.getBuildResults(runsFileJson);
+        let kpis = new Characteristics();
 
-        let kpis = new Characteristics(avgBuildDuration, arrivalRate, buildResults);
+        if(runsFileJson !== undefined) {
+            let avgBuildDuration = this.getAvgBuildDuration(runsFileJson);
+            kpis.avgBuildDuration = avgBuildDuration;
+            let arrivalRate = await this.getArrivalRate(runsFileJson);
+            kpis.arrivalRate = arrivalRate;
+            let buildResults = this.getBuildResults(runsFileJson);
+            kpis.buildResults = buildResults;
+        } else {
+            console.log("No Runs File!");
+        }
 
+        if(jobFilesJson.length !== 0) {
+
+        } else {
+            console.log("No Job Files!");
+        }
+        console.log(kpis);
         return kpis;
     }
 
