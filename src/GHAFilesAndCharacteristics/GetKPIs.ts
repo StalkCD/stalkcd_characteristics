@@ -1,7 +1,9 @@
-import { Kpis } from '../models/Kpis';
 import * as fs from "fs";
 import {Connection} from "../database/Connection";
 import {MongoClient} from "mongodb";
+import { ArrivalRate } from '../models/ArrivalRate';
+import { BuildResult } from '../models/BuildResult';
+import { Characteristics } from "../models/Characteristics";
 
 
 export class GetKPIs {
@@ -23,7 +25,7 @@ export class GetKPIs {
         }
     }
 
-    async getKPIs(loadFrom: string): Promise<Kpis> {
+    async getKPIs(loadFrom: string): Promise<Characteristics> {
 
         /*
         if (this.load != 'local' && this.load != 'download') {
@@ -82,9 +84,8 @@ export class GetKPIs {
         let arrivalRate = await this.getArrivalRate(runsFileJson);
         let buildResults = this.getBuildResults(runsFileJson);
 
-        let kpis: Kpis = {avgBuildDuration, arrivalRate, buildResults};
+        let kpis = new Characteristics(avgBuildDuration, arrivalRate, buildResults);
 
-        console.log(kpis);
         return kpis;
     }
 
@@ -106,13 +107,11 @@ export class GetKPIs {
             return array.indexOf(value) === index;
         });
 
-        let resultsArray: any[][] = [];
+        let resultsArray: BuildResult[] = [];
 
         for(let i = 0; i < unique.length; i++) {
-            let arrival: any[] = [];
-            arrival.push(unique[i]);
-            arrival.push(map[unique[i]]);
-            resultsArray.push(arrival);
+            let buildResult = new BuildResult( unique[i], map[unique[i]]);
+            resultsArray.push(buildResult);
         }
 
         return resultsArray;
@@ -163,23 +162,13 @@ export class GetKPIs {
             return array.indexOf(value) === index;
         });
 
-        let arrivalsArray: any[][] = []
+        let arrivalsArray: ArrivalRate[] = []
 
         for(let i = 0; i < unique.length; i++) {
-            let arrival: any[] = [];
-            arrival.push(unique[i]);
-            arrival.push(map[unique[i]]);
+            let arrival = new ArrivalRate( unique[i], map[unique[i]]);
             arrivalsArray.push(arrival);
         }
 
-        /*
-        for(let j = 0; j < arrivalsArray.length; j++) {
-            console.log(arrivalsArray[j][0]);
-            console.log(arrivalsArray[j][1]);
-        }
-        */
         return arrivalsArray;
-
     }
-
 }

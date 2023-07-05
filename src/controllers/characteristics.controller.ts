@@ -1,14 +1,14 @@
 import { Body, Post, Route, Tags } from 'tsoa';
-import { IKpisConfig } from '../interface';
-import { Kpis } from '../models/Kpis';
+import { ICharacteristicsConfig } from '../interface';
+import { Characteristics } from '../models/Characteristics';
 import { GetKPIs } from '../GHAFilesAndCharacteristics/GetKPIs';
 
 @Route("kpis")
 @Tags("KPIs")
-export default class KPIsController {
+export default class CharacteristicsController {
 
   @Post("/")
-  public async getKPIs(@Body() body: IKpisConfig): Promise<Kpis> {
+  public async getCharacteristics(@Body() body: ICharacteristicsConfig): Promise<Characteristics> {
     let repo: string = body.repoName;
     let workflow: string = body.workflowName;
     let loadFrom: string = body.loadFrom || "local";

@@ -1,7 +1,7 @@
 import express = require("express");
 import PingController from "../controllers/ping.controller";
 import DownloadRouter from "./download.router";
-import KpisRouter from "./kpis.router";
+import CharacteristicsRouter from "./characteristics.router";
 
 
 const router = express.Router();
@@ -13,6 +13,6 @@ router.get("/ping", async (_req, res) => {
 });
 
 router.use("/download", DownloadRouter);
-router.use("/kpis", KpisRouter);
+router.use("/characteristics", CharacteristicsRouter);
 
 export default router;

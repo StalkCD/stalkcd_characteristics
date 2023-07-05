@@ -1,5 +1,5 @@
 import { IApiResponse } from "./IApiResponse.model";
 import { IDownloadConfig } from "./IDownloadConfig.model";
-import { IKpisConfig } from "./IKpisConfig.model";
+import { ICharacteristicsConfig } from "./ICharacteristicsConfig.model";
 
-export { IApiResponse, IDownloadConfig, IKpisConfig }
+export { IApiResponse, IDownloadConfig, ICharacteristicsConfig }
