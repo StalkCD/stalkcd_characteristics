@@ -49,10 +49,19 @@ export class GetKPIs {
          */
         let runsFile: any;
         let runsFileJson: any;
+        let workflowJson: any;
+        let jobFilesJson: any[] = [];
+
         if(loadFrom == 'local') {
             console.log("local");
             runsFile = await fs.readFileSync(`./GHAhistorydata/${this.repoNameForKPIs}/${this.workflowNameForKPIs}/${this.workflowNameForKPIs}_runs.json`, 'utf-8');
             runsFileJson = await JSON.parse(runsFile);
+            const amountRunsOfWorkflow = Object.keys(runsFileJson.workflow_runs).length;
+            for(let i = 0; i < amountRunsOfWorkflow; i++) {
+                let jobFile = await fs.readFileSync(`./GHAhistorydata/${this.repoNameForKPIs}/${this.workflowNameForKPIs}/runid_${runsFileJson.workflow_runs[i].id}/${runsFileJson.workflow_runs[i].id}_jobs.json`, 'utf-8');
+                jobFilesJson.push(await JSON.parse(jobFile));
+            }
+
         } else if(loadFrom == 'db') {
             console.log("db");
             let connection: Connection = new Connection();
@@ -60,7 +69,11 @@ export class GetKPIs {
             dbs = await connection.getConnection();
             let db = await dbs.db("GHAhistorydata");
             runsFileJson = await db.collection(this.repoNameForKPIs).findOne({"file" : "workflow_runs", "workflowname" : this.workflowNameForKPIs});
-            dbs.close();
+            let cursor = await db.collection(this.repoNameForKPIs).find({"file" : "jobs"})
+            for await (const doc of cursor) {
+                jobFilesJson.push(doc);
+            }
+            await dbs.close();
         } else {
             console.error("No valid load type.");
         }

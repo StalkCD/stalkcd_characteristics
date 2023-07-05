@@ -189,8 +189,7 @@ export class DownloadGHAFilesAndLogs {
                     }
                 }
             }
-
-            dbs.close();
+            await dbs.close(true);
         }
     }
 
