@@ -3,8 +3,8 @@ import { ICharacteristicsConfig } from '../interface';
 import { Characteristics } from '../models/Characteristics';
 import { GetKPIs } from '../GHAFilesAndCharacteristics/GetKPIs';
 
-@Route("kpis")
-@Tags("KPIs")
+@Route("characteristics")
+@Tags("Characteristics")
 export default class CharacteristicsController {
 
   @Post("/")
