@@ -106,7 +106,7 @@ switch (+mode) {
 
         let save : boolean;
         save = true;
-        let saveType: string = "db";
+        let saveType: string = "local";
         let depth: number = 3;
         if(config.depth) {
             depth = config.depth;

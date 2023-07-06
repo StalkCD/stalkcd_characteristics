@@ -4,6 +4,8 @@ import {MongoClient} from "mongodb";
 import { ArrivalRate } from '../models/ArrivalRate';
 import { BuildResult } from '../models/BuildResult';
 import { Characteristics } from "../models/Characteristics";
+import {JobsFailed} from "../models/JobsFailed";
+import {StepsFailed} from "../models/StepsFailed";
 
 
 export class GetKPIs {
@@ -94,12 +96,97 @@ export class GetKPIs {
         }
 
         if(jobFilesJson.length !== 0) {
+            //console.log(jobFilesJson[0]);
+            let jobsAndStepsFailed: any[] = this.jobsAndStepsFailed(jobFilesJson);
+            kpis.jobsFailed = jobsAndStepsFailed[0];
+            kpis.stepsFailed = jobsAndStepsFailed[1];
 
         } else {
             console.log("No Job Files!");
         }
         console.log(kpis);
         return kpis;
+    }
+
+    private jobsAndStepsFailed(jobFileJson: any[]) {
+        let listJobsFailed: any[] = [];
+        let listJobNames: any[] = [];
+
+        jobFileJson.forEach(jobFile => {
+
+            if(jobFile.jobs !== undefined && jobFile.jobs !== null) {
+                const amountJobs = Object.keys(jobFile.jobs).length;
+                for (let i = 0; i < amountJobs; i++) {
+                    if (!(jobFile.jobs) || jobFile.jobs[i].conclusion == 'failure') {
+                        if (jobFile.jobs) {
+                            listJobsFailed.push(jobFile.jobs[i]);
+                            listJobNames.push(jobFile.jobs[i].name);
+                        }
+                    }
+
+                }
+            }
+        })
+        let map  = listJobNames.reduce(function (prev, cur) {
+            prev[cur] = (prev[cur] || 0) + 1;
+            return prev;
+        }, {});
+        //console.log(map);
+        let unique = listJobNames.filter(function onlyUnique(value, index, array) {
+            return array.indexOf(value) === index;
+        });
+        //console.log(unique);
+        let failedJobs: any[] = [];
+        for(let i = 0; i < unique.length; i++) {
+            let jobsFailed = new JobsFailed( unique[i], map[unique[i]]);
+            failedJobs.push(jobsFailed);
+        }
+        //console.log(listJobsFailed);
+
+        console.log(unique.length);
+        let failedSteps: any[] = [];
+        for(let i = 0; i < unique.length; i++) {
+            let stepsFailed: any[] = [];
+            let jobName = unique[i];
+            listJobsFailed.forEach(job => {
+                if(unique[i] == job.name) {
+                    const amountSteps = Object.keys(job.steps).length;
+                    for (let j = 0; j < amountSteps; j++) {
+                        if (!(job.steps) || job.steps[j].conclusion == 'failure') {
+                            if (job.steps) {
+                                stepsFailed.push(job.steps[j].name);
+                            }
+                        }
+                    }
+                }
+            })
+            console.log(stepsFailed);
+            console.log(stepsFailed.length);
+            let mapSteps  = stepsFailed.reduce(function (prev, cur) {
+                prev[cur] = (prev[cur] || 0) + 1;
+                return prev;
+            }, {});
+            console.log(mapSteps);
+            //console.log(map);
+            let uniqueSteps = stepsFailed.filter(function onlyUnique(value, index, array) {
+                return array.indexOf(value) === index;
+            });
+            console.log(uniqueSteps);
+            for(let k = 0; k < uniqueSteps.length; k++) {
+                let stepFailed = new StepsFailed(uniqueSteps[k], mapSteps[uniqueSteps[k]], jobName);
+                failedSteps.push(stepFailed);
+            }
+        }
+
+        let ret: any[] = [];
+        ret.push(failedJobs);
+        ret.push(failedSteps);
+        return ret;
+
+    }
+
+    private avgStepDuration(jobFileJson: any) {
+
     }
 
     private getBuildResults(runsFileJson: any) {
