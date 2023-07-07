@@ -30,7 +30,7 @@ export class DownloadGHAFilesAndLogs {
 
         if(saveType == 'db') {
             await this.downloadToMongoDB(depth, pages);
-            process.exit();
+
         } else {
 
             if(depth >= 1) {
