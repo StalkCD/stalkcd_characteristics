@@ -8,7 +8,10 @@ export class Characteristics {
     buildResults?: BuildResult[];
     stepsFailed?: any;
     jobsFailed?: any;
-    avgStepDuration?: any;
+    totalAvgStepDuration?: any;
+    totalAvgSuccessfulStepDuration?: any;
+    totalAvgStepDurationPerStep?: any;
+    avgStepDurationPerStepPerJob?: any;
 
     constructor() {
     }

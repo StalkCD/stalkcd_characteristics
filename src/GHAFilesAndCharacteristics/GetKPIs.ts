@@ -6,7 +6,8 @@ import { BuildResult } from '../models/BuildResult';
 import { Characteristics } from "../models/Characteristics";
 import {JobsFailed} from "../models/JobsFailed";
 import {StepsFailed} from "../models/StepsFailed";
-
+import {TotalAvgStepDurationPerStep} from "../models/TotalAvgStepDurationPerStep";
+import {AvgStepDurationPerStepPerJob} from "../models/AvgStepDurationPerStepPerJob";
 
 export class GetKPIs {
 
@@ -100,6 +101,11 @@ export class GetKPIs {
             let jobsAndStepsFailed: any[] = this.jobsAndStepsFailed(jobFilesJson);
             kpis.jobsFailed = jobsAndStepsFailed[0];
             kpis.stepsFailed = jobsAndStepsFailed[1];
+            let stepDuration: any[] = this.stepDuration(jobFilesJson);
+            kpis.totalAvgStepDuration = stepDuration[0];
+            kpis.totalAvgSuccessfulStepDuration = stepDuration[1];
+            kpis.totalAvgStepDurationPerStep = stepDuration[2];
+            kpis.avgStepDurationPerStepPerJob = stepDuration[3];
 
         } else {
             console.log("No Job Files!");
@@ -143,7 +149,7 @@ export class GetKPIs {
         }
         //console.log(listJobsFailed);
 
-        console.log(unique.length);
+        //console.log(unique.length);
         let failedSteps: any[] = [];
         for(let i = 0; i < unique.length; i++) {
             let stepsFailed: any[] = [];
@@ -160,18 +166,18 @@ export class GetKPIs {
                     }
                 }
             })
-            console.log(stepsFailed);
-            console.log(stepsFailed.length);
+            //console.log(stepsFailed);
+            //console.log(stepsFailed.length);
             let mapSteps  = stepsFailed.reduce(function (prev, cur) {
                 prev[cur] = (prev[cur] || 0) + 1;
                 return prev;
             }, {});
-            console.log(mapSteps);
+            //console.log(mapSteps);
             //console.log(map);
             let uniqueSteps = stepsFailed.filter(function onlyUnique(value, index, array) {
                 return array.indexOf(value) === index;
             });
-            console.log(uniqueSteps);
+            //console.log(uniqueSteps);
             for(let k = 0; k < uniqueSteps.length; k++) {
                 let stepFailed = new StepsFailed(uniqueSteps[k], mapSteps[uniqueSteps[k]], jobName);
                 failedSteps.push(stepFailed);
@@ -185,7 +191,128 @@ export class GetKPIs {
 
     }
 
-    private avgStepDuration(jobFileJson: any) {
+    private stepDuration(jobFileJson: any[]) {
+
+        let ret: any[] = [];
+        let totalAvgStepDuration = 0;
+        let totalAvgSuccessfulStepDuration = 0;
+
+        let listJobNames: any[] = [];
+        let listJobs: any[] = [];
+        let allSteps: any[] = [];
+        let allStepsNames: any[] = [];
+        let totalDur = 0;
+        let totalSuccessfulDur = 0;
+        let stepAmount = 0;
+        let successfulStepAmount = 0;
+        jobFileJson.forEach(jobFile => {
+
+            if(jobFile.jobs !== undefined && jobFile.jobs !== null) {
+                const amountJobs = Object.keys(jobFile.jobs).length;
+                for (let i = 0; i < amountJobs; i++) {
+                    if(jobFile.jobs[i].status == "completed") {
+                        if (jobFile.jobs) {
+                            listJobNames.push(jobFile.jobs[i].name);
+                            listJobs.push(jobFile.jobs[i]);
+                        }
+                        const amountSteps = Object.keys(jobFile.jobs[i].steps).length;
+                        stepAmount = stepAmount + amountSteps;
+                        for (let j = 0; j < amountSteps; j++) {
+                            allSteps.push(jobFile.jobs[i].steps[j]);
+                            allStepsNames.push(jobFile.jobs[i].steps[j].name);
+                            let startTime = Date.parse(jobFile.jobs[i].steps[j].started_at);
+                            let endTime = Date.parse(jobFile.jobs[i].steps[j].completed_at);
+                            let runTime = endTime - startTime;
+                            totalDur += runTime;
+
+                            if (jobFile.jobs[i].steps[j].conclusion == 'success') {
+                                successfulStepAmount = successfulStepAmount + 1;
+                                let successStartTime = Date.parse(jobFile.jobs[i].steps[j].started_at);
+                                let successEndTime = Date.parse(jobFile.jobs[i].steps[j].completed_at);
+                                let successRunTime = successEndTime - successStartTime;
+                                totalSuccessfulDur += successRunTime;
+                            }
+                        }
+                    }
+                }
+            }
+        })
+        if(stepAmount !== 0) {
+            totalAvgStepDuration = totalDur/stepAmount;
+        }
+        if(successfulStepAmount !== 0) {
+            totalAvgSuccessfulStepDuration = totalSuccessfulDur/successfulStepAmount;
+        }
+        ret.push(totalAvgStepDuration);
+        ret.push(totalAvgSuccessfulStepDuration);
+
+        let uniqueSteps = allStepsNames.filter(function onlyUnique(value, index, array) {
+            return array.indexOf(value) === index;
+        });
+
+        let totalAvgStepDurationPerStep: any[] = [];
+
+        uniqueSteps.forEach(uniqueStep => {
+            let totalDurSteps = 0;
+            let amountSteps = 0;
+            allSteps.forEach(step => {
+                if(uniqueStep == step.name && step.status == 'completed') {
+                    amountSteps = amountSteps + 1;
+                    let startTime = Date.parse(step.started_at);
+                    let endTime = Date.parse(step.completed_at);
+                    let runTime = endTime - startTime;
+                    totalDurSteps += runTime;
+                }
+            })
+            let avgDur = 0;
+            if(amountSteps !== 0) {
+                avgDur = totalDurSteps/amountSteps;
+            }
+            let entry = new TotalAvgStepDurationPerStep(uniqueStep, avgDur);
+            totalAvgStepDurationPerStep.push(entry);
+        })
+        ret.push(totalAvgStepDurationPerStep);
+
+        let avgStepDurationPerStepPerJob: any = [];
+        let uniqueJobs = listJobNames.filter(function onlyUnique(value, index, array) {
+            return array.indexOf(value) === index;
+        });
+        uniqueJobs.forEach(uniqueJob => {
+
+            let stepsOfJob: any[] = [];
+            listJobs.forEach(job => {
+
+                if(uniqueJob == job.name) {
+                    const amountSteps = Object.keys(job.steps).length;
+                    for (let i = 0; i < amountSteps; i++) {
+                        stepsOfJob.push(job.steps[i]);
+                    }
+                }
+            })
+            uniqueSteps.forEach(uniqueStep => {
+                let totalDurSteps = 0;
+                let amountSteps = 0;
+                stepsOfJob.forEach(step => {
+                    if(uniqueStep == step.name) {
+                        amountSteps = amountSteps + 1;
+                        let startTime = Date.parse(step.started_at);
+                        let endTime = Date.parse(step.completed_at);
+                        let runTime = endTime - startTime;
+                        totalDurSteps += runTime;
+                    }
+                })
+
+                let avgDur = 0;
+                if(amountSteps !== 0) {
+                    avgDur = totalDurSteps/amountSteps;
+                }
+                let entry = new AvgStepDurationPerStepPerJob(uniqueStep, avgDur, uniqueJob);
+                avgStepDurationPerStepPerJob.push(entry);
+            })
+        })
+        ret.push(avgStepDurationPerStepPerJob);
+
+        return ret;
 
     }
 
