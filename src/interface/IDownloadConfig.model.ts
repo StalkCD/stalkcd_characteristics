@@ -5,4 +5,5 @@ export interface IDownloadConfig {
     gitHubToken: string;
     saveTo?: string;
     depth?: number;
+    pages?: number;
 }

@@ -14,8 +14,9 @@ export default class DownloadController {
     let gitHubToken: string = body.gitHubToken;
     let saveTo: string = body.saveTo || "local";
     let depth: number = body.depth || 1;
+    let pages: number = body.pages || 1;
 
-    await new DownloadGHAFilesAndLogs(repoOwner, repoName, workflowName, gitHubToken).downloadFiles(saveTo, depth);
+    await new DownloadGHAFilesAndLogs(repoOwner, repoName, workflowName, gitHubToken).downloadFiles(saveTo, depth, pages);
 
     return {
         message: "The download was successful.",

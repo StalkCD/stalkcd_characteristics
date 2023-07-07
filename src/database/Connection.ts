@@ -1,7 +1,8 @@
 import {MongoClient, ServerApiVersion} from "mongodb";
 
 
-const uri = "mongodb://user:pass@stalkcd_cockpit-mongodb-1:27017/";
+let uri = "mongodb://user:pass@stalkcd_cockpit-mongodb-1:27017/";
+//uri = "mongodb://user:pass@localhost:8083/"
 
 const client = new MongoClient(uri,  {
         serverApi: {

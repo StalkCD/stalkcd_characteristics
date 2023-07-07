@@ -106,12 +106,13 @@ switch (+mode) {
 
         let save : boolean;
         save = true;
-        let saveType: string = "local";
+        let saveType: string = "db";
         let depth: number = 3;
+        let pages: number = 1;
         if(config.depth) {
             depth = config.depth;
         }
-        new DownloadGHAFilesAndLogs(repoOwner, repoName, workflowName, token).downloadFiles(saveType, depth); //TODO in der Schnittstelle berücksichtigen ob gespeichert werden soll
+        new DownloadGHAFilesAndLogs(repoOwner, repoName, workflowName, token).downloadFiles(saveType, depth, pages);
         break;
 
     case Mode.GetKPIs:

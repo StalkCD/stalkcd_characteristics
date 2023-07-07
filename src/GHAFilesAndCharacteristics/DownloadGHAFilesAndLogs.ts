@@ -26,10 +26,11 @@ export class DownloadGHAFilesAndLogs {
     /**
      *
      */
-    async downloadFiles(saveType: string, depth: number) {
+    async downloadFiles(saveType: string, depth: number, pages: number) {
 
         if(saveType == 'db') {
-            await this.downloadToMongoDB(depth);
+            await this.downloadToMongoDB(depth, pages);
+            process.exit();
         } else {
 
             if(depth >= 1) {
@@ -53,18 +54,20 @@ export class DownloadGHAFilesAndLogs {
                     //history.addRepo(this.repoName, workflowsJson);
 
                     for (let i = 0; i < amountWorkflows; i++) {
-                        if (reducedWorkflowsJson.workflows![i] !== undefined) {
+                        if (!(reducedWorkflowsJson.workflows) || reducedWorkflowsJson.workflows[i] !== undefined) {
 
                             saver.createTargetDir(path + reducedWorkflowsJson.workflows![i].name);
                             path = "GHAhistorydata/" + this.repoName + "/" + reducedWorkflowsJson.workflows![i].name + "/";
                             saver.fileWriter(path + reducedWorkflowsJson.workflows![i].name, reducedWorkflowsJson, ".json");
 
                             if(depth >= 2) {
-                                const RunsOfWorkflow = await this.getRunsOfWorkflow(reducedWorkflowsJson.workflows![i]);
+                                const RunsOfWorkflow = await this.getRunsOfWorkflow(reducedWorkflowsJson.workflows![i], pages);
                                 const RunsOfWorkflowJson = JSON.parse(RunsOfWorkflow);
                                 //history.addWorkflow(workflowsJson.workflows![i].id, RunsOfWorkflowJson);
 
-                                saver.fileWriter(path + reducedWorkflowsJson.workflows![i].name + "_runs", RunsOfWorkflowJson, ".json");
+                                if (reducedWorkflowsJson.workflows) {
+                                    saver.fileWriter(path + reducedWorkflowsJson.workflows[i].name + "_runs", RunsOfWorkflowJson, ".json");
+                                }
                                 if(depth >= 3) {
                                     const amountRunsOfWorkflow = Object.keys(RunsOfWorkflowJson.workflow_runs).length;
 
@@ -118,13 +121,14 @@ export class DownloadGHAFilesAndLogs {
             }
             //return history;
         }
+        return null;
     }
 
-     private async downloadToMongoDB(depth: number) {
+     private async downloadToMongoDB(depth: number, pages: number) {
 
         if(depth >= 1) {
             let connection: Connection = new Connection();
-            let dbs: MongoClient | undefined;
+            let dbs: MongoClient;
             dbs = await connection.getConnection();
             let db = await dbs.db("GHAhistorydata");
             let coll: any[] = await db.listCollections().toArray();
@@ -152,7 +156,7 @@ export class DownloadGHAFilesAndLogs {
                 const amountWorkflows = Object.keys(reducedWorkflowsJson.workflows).length;
 
                 for (let i = 0; i < amountWorkflows; i++) {
-                    const RunsOfWorkflow = await this.getRunsOfWorkflow(reducedWorkflowsJson.workflows![i]);
+                    const RunsOfWorkflow = await this.getRunsOfWorkflow(reducedWorkflowsJson.workflows![i], pages);
                     const RunsOfWorkflowJson = await JSON.parse(RunsOfWorkflow);
                     RunsOfWorkflowJson["workflowid"] = reducedWorkflowsJson.workflows![i].id;
                     RunsOfWorkflowJson["workflowname"] = reducedWorkflowsJson.workflows![i].name;
@@ -231,13 +235,13 @@ export class DownloadGHAFilesAndLogs {
      * @param workflow
      * @private
      */
-    private async getRunsOfWorkflow(workflow: any): Promise<any> {
+    private async getRunsOfWorkflow(workflow: any, pages: number): Promise<any> {
         let page: number = 1;
         let fileContentsResponse = await this.tryFetch(`https://api.github.com/repos/${this.repoOwner}/${this.repoName}/actions/workflows/${workflow.id}/runs?per_page=100&page=${page}`);
         let fileContents = await fileContentsResponse.text();
         let totalContents: any = fileContents.slice(0, -2);
         let linkMatch = /<([^>]*?)>; rel="next"/.exec(<string>fileContentsResponse.headers.get('link'));
-        while (page < 1 && fileContentsResponse.headers.get('link') !== null && linkMatch && linkMatch.length >= 2 ? linkMatch[1] : undefined) {
+        while (page < pages && fileContentsResponse.headers.get('link') !== null && linkMatch && linkMatch.length >= 2 ? linkMatch[1] : undefined) {
             page = page + 1;
             fileContentsResponse = await this.tryFetch(`https://api.github.com/repos/${this.repoOwner}/${this.repoName}/actions/workflows/${workflow.id}/runs?per_page=100&page=${page}`);
             fileContents = await fileContentsResponse.text();
