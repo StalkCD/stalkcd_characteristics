@@ -10,7 +10,7 @@ export default class DownloadController {
   public async downloadGHAFilesAndLogs(@Body() body: IDownloadConfig): Promise<IApiResponse> {
     let repoName: string = body.repoName;
     let repoOwner: string = body.repoOwner;
-    let workflowName: string = body.workflowName;
+    let workflowName: string = body.workflowName || "noValue";
     let gitHubToken: string = body.gitHubToken;
     let saveTo: string = body.saveTo || "local";
     let depth: number = body.depth || 1;

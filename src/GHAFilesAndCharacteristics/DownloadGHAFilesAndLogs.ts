@@ -48,32 +48,36 @@ export class DownloadGHAFilesAndLogs {
 
                     saver.fileWriter(path + this.repoName + "_workflows", fileContents, ".json");
 
-                    let reducedfileContents: any = this.reduceWorkflows(fileContents);
-                    let reducedWorkflowsJson: any = JSON.parse(reducedfileContents);
-                    const amountWorkflows = Object.keys(reducedWorkflowsJson.workflows).length;
+                    if(this.workflowName != 'noValue') {
+                        let reducedfileContents: any = this.reduceWorkflows(fileContents);
+                        let workflowsJson: any = JSON.parse(reducedfileContents);
+                    }
+
+
+                    const amountWorkflows = Object.keys(workflowsJson.workflows).length;
                     //history.addRepo(this.repoName, workflowsJson);
 
                     for (let i = 0; i < amountWorkflows; i++) {
-                        if (!(reducedWorkflowsJson.workflows) || reducedWorkflowsJson.workflows[i] !== undefined) {
-
-                            saver.createTargetDir(path + reducedWorkflowsJson.workflows![i].name);
-                            path = "GHAhistorydata/" + this.repoName + "/" + reducedWorkflowsJson.workflows![i].name + "/";
-                            saver.fileWriter(path + reducedWorkflowsJson.workflows![i].name, reducedWorkflowsJson, ".json");
+                        if (!(workflowsJson.workflows) || workflowsJson.workflows[i] !== undefined) {
+                            path = "GHAhistorydata/" + this.repoName + "/";
+                            saver.createTargetDir(path + workflowsJson.workflows![i].name);
+                            path = "GHAhistorydata/" + this.repoName + "/" + workflowsJson.workflows![i].name + "/";
+                            saver.fileWriter(path + workflowsJson.workflows![i].name, workflowsJson, ".json");
 
                             if(depth >= 2) {
-                                const RunsOfWorkflow = await this.getRunsOfWorkflow(reducedWorkflowsJson.workflows![i], pages);
+                                const RunsOfWorkflow = await this.getRunsOfWorkflow(workflowsJson.workflows![i], pages);
                                 const RunsOfWorkflowJson = JSON.parse(RunsOfWorkflow);
                                 //history.addWorkflow(workflowsJson.workflows![i].id, RunsOfWorkflowJson);
 
-                                if (reducedWorkflowsJson.workflows) {
-                                    saver.fileWriter(path + reducedWorkflowsJson.workflows[i].name + "_runs", RunsOfWorkflowJson, ".json");
+                                if (workflowsJson.workflows) {
+                                    saver.fileWriter(path + workflowsJson.workflows[i].name + "_runs", RunsOfWorkflowJson, ".json");
                                 }
                                 if(depth >= 3) {
                                     const amountRunsOfWorkflow = Object.keys(RunsOfWorkflowJson.workflow_runs).length;
 
                                     for (let j = 0; j < amountRunsOfWorkflow; j++) {
 
-                                    path = "GHAhistorydata/" + this.repoName + "/" + reducedWorkflowsJson.workflows![i].name + "/";
+                                    path = "GHAhistorydata/" + this.repoName + "/" + workflowsJson.workflows![i].name + "/";
                                     saver.createTargetDir(path + "runid_" + RunsOfWorkflowJson.workflow_runs![j].id);
                                     path = path + "runid_" + RunsOfWorkflowJson.workflow_runs![j].id + "/";
 
@@ -96,7 +100,7 @@ export class DownloadGHAFilesAndLogs {
                                         const amountJobsOfRun = Object.keys(jobsOfRunJson.jobs).length;
 
                                         for (let k = 0; k < amountJobsOfRun; k++) {
-                                            path = "GHAhistorydata/" + this.repoName + "/" + reducedWorkflowsJson.workflows![i].name + "/" + "runid_" + RunsOfWorkflowJson.workflow_runs![j].id + "/";
+                                            path = "GHAhistorydata/" + this.repoName + "/" + workflowsJson.workflows![i].name + "/" + "runid_" + RunsOfWorkflowJson.workflow_runs![j].id + "/";
                                             saver.createTargetDir(path + "jobid_" + jobsOfRunJson.jobs![k].id);
                                             path = path + "jobid_" + jobsOfRunJson.jobs![k].id + "/";
                                             saver.fileWriter(path + "jobid_" + jobsOfRunJson.jobs![k].id, jobsOfRunJson.jobs![k], ".json");
@@ -151,15 +155,17 @@ export class DownloadGHAFilesAndLogs {
             await db.collection(this.repoName).insertOne(workflowsJson);
 
             if(depth >= 2) {
-                let reducedfileContents: any = this.reduceWorkflows(fileContents);
-                let reducedWorkflowsJson: any = JSON.parse(reducedfileContents);
-                const amountWorkflows = Object.keys(reducedWorkflowsJson.workflows).length;
+                if(this.workflowName != 'noValue') {
+                    let reducedfileContents: any = this.reduceWorkflows(fileContents);
+                    let workflowsJson: any = JSON.parse(reducedfileContents);
+                }
+                const amountWorkflows = Object.keys(workflowsJson.workflows).length;
 
                 for (let i = 0; i < amountWorkflows; i++) {
-                    const RunsOfWorkflow = await this.getRunsOfWorkflow(reducedWorkflowsJson.workflows![i], pages);
+                    const RunsOfWorkflow = await this.getRunsOfWorkflow(workflowsJson.workflows![i], pages);
                     const RunsOfWorkflowJson = await JSON.parse(RunsOfWorkflow);
-                    RunsOfWorkflowJson["workflowid"] = reducedWorkflowsJson.workflows![i].id;
-                    RunsOfWorkflowJson["workflowname"] = reducedWorkflowsJson.workflows![i].name;
+                    RunsOfWorkflowJson["workflowid"] = workflowsJson.workflows![i].id;
+                    RunsOfWorkflowJson["workflowname"] = workflowsJson.workflows![i].name;
                     RunsOfWorkflowJson["file"] = "workflow_runs";
                     await db.collection(this.repoName).insertOne(RunsOfWorkflowJson);
 
