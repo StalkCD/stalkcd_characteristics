@@ -12,5 +12,4 @@ dist/
 node_modules/
 .idea
 /.idea/
-swagger.json
 .dockerignore
