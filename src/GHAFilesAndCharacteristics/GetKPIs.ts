@@ -278,18 +278,23 @@ export class GetKPIs {
             return array.indexOf(value) === index;
         });
         uniqueJobs.forEach(uniqueJob => {
-
+            console.log(uniqueJob);
             let stepsOfJob: any[] = [];
+            let nameOfSteps: any[] = [];
             listJobs.forEach(job => {
 
                 if(uniqueJob == job.name) {
                     const amountSteps = Object.keys(job.steps).length;
                     for (let i = 0; i < amountSteps; i++) {
                         stepsOfJob.push(job.steps[i]);
+                        nameOfSteps.push(job.steps[i].name);
                     }
                 }
             })
-            uniqueSteps.forEach(uniqueStep => {
+            let uniqueStepsOfJob = nameOfSteps.filter(function onlyUnique(value, index, array) {
+                return array.indexOf(value) === index;
+            });
+            uniqueStepsOfJob.forEach(uniqueStep => {
                 let totalDurSteps = 0;
                 let amountSteps = 0;
                 stepsOfJob.forEach(step => {
@@ -306,6 +311,7 @@ export class GetKPIs {
                 if(amountSteps !== 0) {
                     avgDur = totalDurSteps/amountSteps;
                 }
+
                 let entry = new AvgStepDurationPerStepPerJob(uniqueStep, avgDur, uniqueJob);
                 avgStepDurationPerStepPerJob.push(entry);
             })
