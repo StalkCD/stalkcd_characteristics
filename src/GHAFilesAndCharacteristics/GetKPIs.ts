@@ -69,6 +69,7 @@ export class GetKPIs {
 
         } else if(loadFrom == 'db') {
             console.log("db");
+            this.repoNameForKPIs = this.repoNameForKPIs.toLowerCase();
             let connection: Connection = new Connection();
             let dbs: MongoClient | undefined;
             dbs = await connection.getConnection();

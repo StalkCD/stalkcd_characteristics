@@ -101,9 +101,11 @@ export class DownloadGHAFilesAndLogs {
                 const connection: Connection = new Connection();
                 dbs = await connection.getConnection();
                 const db = dbs.db("GHAhistorydata");
+
                 const coll: any[] = await db.listCollections().toArray();
                 let collExists: boolean = false;
 
+                this.repoName = this.repoName.toLowerCase();
                 for (const collection of coll) {
                     if (collection.name === this.repoName) {
                         collExists = true;
@@ -120,6 +122,7 @@ export class DownloadGHAFilesAndLogs {
                 let fileContents = await this.getAllWorkflows();
                 let workflowsJson: any = JSON.parse(fileContents);
                 workflowsJson.file = "workflows";
+                workflowsJson.downloaddate = new Date(Date.now());
                 await db.collection(this.repoName).insertOne(workflowsJson);
 
                 if (depth >= 2) {
@@ -136,6 +139,7 @@ export class DownloadGHAFilesAndLogs {
                         RunsOfWorkflowJson.workflowid = workflowsJson.workflows?.[i]?.id;
                         RunsOfWorkflowJson.workflowname = workflowsJson.workflows?.[i]?.name;
                         RunsOfWorkflowJson.file = "workflow_runs";
+                        RunsOfWorkflowJson.downloaddate = new Date(Date.now());
                         await db.collection(this.repoName).insertOne(RunsOfWorkflowJson);
 
                         if (depth >= 3) {
@@ -146,6 +150,7 @@ export class DownloadGHAFilesAndLogs {
                                 const jobsOfRunJson = JSON.parse(jobsOfRun);
                                 jobsOfRunJson.runid = RunsOfWorkflowJson.workflow_runs?.[j]?.id;
                                 jobsOfRunJson.file = "jobs";
+                                jobsOfRunJson.downloaddate = new Date(Date.now());
                                 await db.collection(this.repoName).insertOne(jobsOfRunJson);
 
                                 if (depth >= 4) {
@@ -156,6 +161,7 @@ export class DownloadGHAFilesAndLogs {
                                         await db.collection(this.repoName).insertOne({
                                             file: "log",
                                             jobid: jobsOfRunJson.jobs?.[k]?.id,
+                                            downloaddate: new Date(Date.now()),
                                             content: logOfJob
                                         });
                                     }
