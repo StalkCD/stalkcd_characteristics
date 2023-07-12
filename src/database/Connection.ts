@@ -1,8 +1,8 @@
 import {MongoClient, ServerApiVersion} from "mongodb";
 
+let dbHost = process.env.DATABASE_HOST || 'localhost';
+let uri = "mongodb://user:pass@" + dbHost + ":27017/";
 
-let uri = "mongodb://user:pass@stalkcd_cockpit-mongodb-1:27017/";
-//uri = "mongodb://user:pass@localhost:8083/"
 
 const client = new MongoClient(uri,  {
         serverApi: {
@@ -15,8 +15,7 @@ const client = new MongoClient(uri,  {
 export class Connection {
 
     async getConnection(): Promise<MongoClient> {
-
-
+        console.log(dbHost);
         // Connect the client to the server (optional starting in v4.7)
         await client.connect();
             // Send a ping to confirm a successful connection
