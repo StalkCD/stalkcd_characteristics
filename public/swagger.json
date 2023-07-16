@@ -50,12 +50,15 @@
 					"depth": {
 						"type": "number",
 						"format": "double"
+					},
+					"pages": {
+						"type": "number",
+						"format": "double"
 					}
 				},
 				"required": [
 					"repoName",
 					"repoOwner",
-					"workflowName",
 					"gitHubToken"
 				],
 				"type": "object",
@@ -112,13 +115,14 @@
 							"$ref": "#/components/schemas/BuildResult"
 						},
 						"type": "array"
-					}
+					},
+					"stepsFailed": {},
+					"jobsFailed": {},
+					"totalAvgStepDuration": {},
+					"totalAvgSuccessfulStepDuration": {},
+					"totalAvgStepDurationPerStep": {},
+					"avgStepDurationPerStepPerJob": {}
 				},
-				"required": [
-					"avgBuildDuration",
-					"arrivalRate",
-					"buildResults"
-				],
 				"type": "object",
 				"additionalProperties": false
 			},
@@ -232,6 +236,26 @@
 						}
 					}
 				}
+			}
+		},
+		"/workflows": {
+			"post": {
+				"operationId": "GetWorkflows",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Workflows"
+				],
+				"security": [],
+				"parameters": []
 			}
 		}
 	},
