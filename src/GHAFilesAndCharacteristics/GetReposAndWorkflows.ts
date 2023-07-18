@@ -16,19 +16,27 @@ export class GetReposAndWorkflows{
         let listRepos = await db.listCollections().toArray();
 
         let workflowArray: any[] = [];
-        for (const coll of listRepos) {
-            let workflowsFile: any = await db.collection(coll.name).findOne({"file" : "workflows"});
-            for (const workflow of workflowsFile.workflows) {
+        try {
+            for (const coll of listRepos) {
+                let workflowsFile: any = await db.collection(coll.name).findOne({"file": "workflows"});
+                for (const workflow of workflowsFile.workflows) {
 
-                let runsFile: any = await db.collection(coll.name).findOne({"file" : "workflow_runs", "workflowid" : workflow.id});
-                if(runsFile === null) {
-                    let wfo: WorkflowObject = new WorkflowObject(coll.name, workflow, false);
-                    workflowArray.push(wfo)
-                } else{
-                    let wfo: WorkflowObject = new WorkflowObject(coll.name, workflow, true, runsFile.downloaddate);
-                    workflowArray.push(wfo);
+                    let runsFile: any = await db.collection(coll.name).findOne({
+                        "file": "workflow_runs",
+                        "workflowid": workflow.id
+                    });
+                    if (runsFile === null) {
+                        let wfo: WorkflowObject = new WorkflowObject(coll.name, workflow, false);
+                        workflowArray.push(wfo)
+                    } else {
+                        let wfo: WorkflowObject = new WorkflowObject(coll.name, workflow, true, runsFile.downloaddate);
+                        workflowArray.push(wfo);
+                    }
                 }
             }
+        } catch (err: any) {
+            console.log("Problems with the data.");
+            console.log(err.message);
         }
         await dbs.close();
         return workflowArray;

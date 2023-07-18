@@ -50,12 +50,15 @@
 					"depth": {
 						"type": "number",
 						"format": "double"
+					},
+					"pages": {
+						"type": "number",
+						"format": "double"
 					}
 				},
 				"required": [
 					"repoName",
 					"repoOwner",
-					"workflowName",
 					"gitHubToken"
 				],
 				"type": "object",
@@ -95,6 +98,82 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"StepsFailed": {
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"count": {
+						"type": "number",
+						"format": "double"
+					},
+					"belongsTo": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"name",
+					"count",
+					"belongsTo"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"JobsFailed": {
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"count": {
+						"type": "number",
+						"format": "double"
+					}
+				},
+				"required": [
+					"name",
+					"count"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"TotalAvgStepDurationPerStep": {
+				"properties": {
+					"step": {
+						"type": "string"
+					},
+					"avgDur": {
+						"type": "number",
+						"format": "double"
+					}
+				},
+				"required": [
+					"step",
+					"avgDur"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"AvgStepDurationPerStepPerJob": {
+				"properties": {
+					"step": {
+						"type": "string"
+					},
+					"avgDur": {
+						"type": "number",
+						"format": "double"
+					},
+					"belongsTo": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"step",
+					"avgDur",
+					"belongsTo"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"Characteristics": {
 				"properties": {
 					"avgBuildDuration": {
@@ -112,13 +191,40 @@
 							"$ref": "#/components/schemas/BuildResult"
 						},
 						"type": "array"
+					},
+					"stepsFailed": {
+						"items": {
+							"$ref": "#/components/schemas/StepsFailed"
+						},
+						"type": "array"
+					},
+					"jobsFailed": {
+						"items": {
+							"$ref": "#/components/schemas/JobsFailed"
+						},
+						"type": "array"
+					},
+					"totalAvgStepDuration": {
+						"type": "number",
+						"format": "double"
+					},
+					"totalAvgSuccessfulStepDuration": {
+						"type": "number",
+						"format": "double"
+					},
+					"totalAvgStepDurationPerStep": {
+						"items": {
+							"$ref": "#/components/schemas/TotalAvgStepDurationPerStep"
+						},
+						"type": "array"
+					},
+					"avgStepDurationPerStepPerJob": {
+						"items": {
+							"$ref": "#/components/schemas/AvgStepDurationPerStepPerJob"
+						},
+						"type": "array"
 					}
 				},
-				"required": [
-					"avgBuildDuration",
-					"arrivalRate",
-					"buildResults"
-				],
 				"type": "object",
 				"additionalProperties": false
 			},
@@ -232,6 +338,26 @@
 						}
 					}
 				}
+			}
+		},
+		"/workflows": {
+			"post": {
+				"operationId": "GetWorkflows",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Workflows"
+				],
+				"security": [],
+				"parameters": []
 			}
 		}
 	},

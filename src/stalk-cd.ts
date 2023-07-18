@@ -27,9 +27,11 @@ program
 program.command('download-ghafiles-and-logs')
     .option('-o, --owner [owner]', 'owner of the repository')
     .option('-n, --name [name]', 'name of the repository')
-    .option('-w, --workflow [workflow]', 'workflow of the repository')
+    .option('-w, --workflow [workflow]', 'OPTIONAL workflow of the repository')
     .option('-t, --token [token]', 'token for the github api')
-    .option('-d, --depth [depth]', 'determine what to download 1:workflow, 2:runs, 3:jobs, 4:logs')
+    .option('-d, --depth [depth]', 'OPTIONAL (Default = 3) determine what to download 1:workflow, 2:runs, 3:jobs, 4:logs')
+    .option('-s, --savetype [savetype]', 'save data in files or in db')
+    .option('-p, --pages [pages]', 'OPTIONAL (Default = 1) number of pages of downloaded runs: numberRuns = pages x 100')
     .action((cmd:String) => {
         mode = Mode.DownloadGHAFilesAndLogs;
         config = cmd;
@@ -38,9 +40,7 @@ program.command('download-ghafiles-and-logs')
 program.command('get-kpis')
     .option('-n, --name [name]', 'name of the repository')
     .option('-w, --workflow [workflow]', 'workflow of the repository')
-    .option('-l, --load [load]', 'load data via api or locally')
-    .option('-o, --owner [owner]', 'owner of the repository')
-    .option('-t, --token [token]', 'token for the github api')
+    .option('-l, --load [load]', 'load data from db or files')
     .action((cmd:string) => {
         mode = Mode.GetKPIs;
         config = cmd;
@@ -110,54 +110,47 @@ switch (+mode) {
         if(config.token) {
             token = config.token;
         }
-
-        let save : boolean;
-        save = true;
-        let saveType: string = "db";
+        let saveType: string = '';
+        if(config.savetype) {
+            saveType = config.savetype;
+        }
         let depth: number = 3;
-        let pages: number = 1;
         if(config.depth) {
             depth = config.depth;
+        }
+        let pages: number = 1;
+        if(config.pages) {
+            pages = config.pages;
         }
         new DownloadGHAFilesAndLogs(repoOwner, repoName, workflowName, token).downloadFiles(saveType, depth, pages);
         break;
 
     case Mode.GetKPIs:
-        let repoNameForKPIs = 'curl';
+        let repoNameForKPIs = '';
         if (config.name) {
             repoNameForKPIs = config.name;
         }
-        let workflowNameForKPIs = 'CodeQL';
+        let workflowNameForKPIs = '';
         if(config.workflow) {
             workflowNameForKPIs = config.workflow;
         }
-        let load = 'local';
+        let load = '';
         if(config.load) {
             load = config.load;
         }
-        let repoOwnerForKPIs = '';
-        if (config.owner) {
-            repoOwnerForKPIs = config.owner;
-        }
-        let tokenForKPIs = '';
-        if(config.token) {
-            tokenForKPIs = config.token;
-        }
-        let saveForKPIs = true;
-        let loadFrom = "db";
-        new GetKPIs(repoNameForKPIs, workflowNameForKPIs,repoOwnerForKPIs, tokenForKPIs).getKPIs(load);
+        new GetKPIs(repoNameForKPIs, workflowNameForKPIs).getKPIs(load);
         break;
 
     case Mode.GetWorkflowFile:
-        let repoOwnerWF = 'curl';
+        let repoOwnerWF = '';
         if (config.owner) {
             repoOwnerWF = config.owner;
         }
-        let repoNameWF = 'curl';
+        let repoNameWF = '';
         if (config.name) {
             repoNameWF = config.name;
         }
-        let workflowNameWF = 'CodeQL';
+        let workflowNameWF = '';
         if(config.workflow) {
             workflowNameWF = config.workflow;
         }
@@ -169,18 +162,6 @@ switch (+mode) {
         saveWF = true;
         let saveTypeForWF = "db";
         new GetWorkflowFile(repoOwnerWF, repoNameWF, workflowNameWF, tokenWF).getWorkflowFile(saveWF, saveTypeForWF); //TODO in der Schnittstelle berücksichtigen ob gespeichert werden soll
-        break;
-
-    case Mode.GHAFileLoader:
-        let repoNameForLoad = 'hibernate-orm';
-        if (config.name) {
-            repoNameForLoad = config.name;
-        }
-        let workflowNameForLoad = '';
-        if(config.workflow) {
-            workflowNameForLoad = config.workflow;
-        }
-        new GHAFileLoader(repoNameForLoad, workflowNameForLoad).loadFiles();
         break;
 
     case Mode.AmountWorkflowsAndRunsTest:

@@ -13,19 +13,12 @@ export class GetKPIs {
 
     repoNameForKPIs: string;
     workflowNameForKPIs: string;
-    repoOwnerForKPIs: string | undefined;
     token: string | undefined;
 
-    constructor(repoNameForKPIs: string, workflowNameForKPIs: string, repoOwnerForKPIs?: string, token?: string) {
+    constructor(repoNameForKPIs: string, workflowNameForKPIs: string) {
 
         this.repoNameForKPIs = repoNameForKPIs;
         this.workflowNameForKPIs = workflowNameForKPIs;
-        if(repoOwnerForKPIs != undefined && repoOwnerForKPIs != "") {
-            this.repoOwnerForKPIs = repoOwnerForKPIs;
-        }
-        if(token != undefined && token != "") {
-            this.token = token;
-        }
     }
 
     async getKPIs(loadFrom: string): Promise<Characteristics> {
