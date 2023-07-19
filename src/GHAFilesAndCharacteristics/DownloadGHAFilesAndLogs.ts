@@ -27,6 +27,7 @@ export class DownloadGHAFilesAndLogs {
      *
      */
     async downloadFiles(saveType: string, depth: number, pages: number) {
+        console.log(depth);
         if (saveType === 'db') {
             await this.downloadToMongoDB(depth, pages);
         } else {
@@ -41,7 +42,7 @@ export class DownloadGHAFilesAndLogs {
                     let workflowsJson: any = JSON.parse(fileContents);
                     saver.fileWriter(`GHAhistorydata/${this.repoName}/${this.repoName}_workflows`, fileContents, ".json");
 
-                    if (this.workflowName !== 'noValue') {
+                    if (this.workflowName !== 'noValue' && this.workflowName !== "") {
                         const reducedFileContents = this.reduceWorkflows(fileContents);
                         workflowsJson = JSON.parse(reducedFileContents);
                     }
