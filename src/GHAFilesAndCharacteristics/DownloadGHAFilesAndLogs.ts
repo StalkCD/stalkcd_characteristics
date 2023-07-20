@@ -47,8 +47,8 @@ export class DownloadGHAFilesAndLogs {
                         workflowsJson = JSON.parse(reducedFileContents);
                     }
 
-                    await Promise.all(workflowsJson.workflows.map(async (workflow: any) => {
-                        if (!workflow) return;
+                    for (const workflow of workflowsJson.workflows) {
+                        if (!workflow) continue;
 
                         const workflowName = workflow.name;
                         const workflowPath = `GHAhistorydata/${this.repoName}/${workflowName}`;
@@ -85,7 +85,7 @@ export class DownloadGHAFilesAndLogs {
                                 }));
                             }
                         }
-                    }));
+                    }
                 } catch (err: any) {
                     console.error(err.message);
                 }
@@ -120,7 +120,7 @@ export class DownloadGHAFilesAndLogs {
                 await db.collection(this.repoName).insertOne(workflowsJson);
 
                 if (depth >= 2) {
-                    if (this.workflowName !== 'noValue') {
+                    if (this.workflowName !== 'noValue' && this.workflowName !== "") {
                         let reducedFileContents: any = this.reduceWorkflows(fileContents);
                         workflowsJson = JSON.parse(reducedFileContents);
                     }
@@ -285,11 +285,6 @@ export class DownloadGHAFilesAndLogs {
         } catch (err) {
             console.error(err);
 
-        }
-        if (res.url == null || res.url == "" && this.rerunLimit < 10) {
-            console.log("rerun " + this.rerunLimit)
-            this.rerunLimit = this.rerunLimit + 1;
-            this.tryFetch(fetchUrl);
         }
 
         this.rerunLimit = 0;
