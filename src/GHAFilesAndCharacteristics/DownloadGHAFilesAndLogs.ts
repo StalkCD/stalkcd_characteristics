@@ -61,7 +61,7 @@ export class DownloadGHAFilesAndLogs {
                             saver.fileWriter(`${workflowPath}/${workflowName}_runs`, runsOfWorkflowJson, ".json");
 
                             if (depth >= 3) {
-                                await Promise.all(runsOfWorkflowJson.workflow_runs.map(async (run: any) => {
+                                for (const run of runsOfWorkflowJson.workflow_runs) {
                                     const runId = run.id;
                                     const runPath = `${workflowPath}/runid_${runId}`;
                                     await saver.createTargetDir(runPath);
@@ -72,7 +72,7 @@ export class DownloadGHAFilesAndLogs {
                                     saver.fileWriter(`${runPath}/${runId}_jobs`, jobsOfRunJson, ".json");
 
                                     if (depth >= 4) {
-                                        await Promise.all(jobsOfRunJson.jobs.map(async (job: any) => {
+                                        for (const job of jobsOfRunJson.jobs) {
                                             const jobId = job.id;
                                             const jobPath = `${runPath}/jobid_${jobId}`;
                                             await saver.createTargetDir(jobPath);
@@ -80,9 +80,9 @@ export class DownloadGHAFilesAndLogs {
 
                                             const logOfJob = await this.getLogOfJob(jobId);
                                             saver.textFileWriter(`${jobPath}/jobid_${jobId}_log`, logOfJob, ".txt");
-                                        }));
+                                        }
                                     }
-                                }));
+                                }
                             }
                         }
                     }
@@ -100,16 +100,23 @@ export class DownloadGHAFilesAndLogs {
         try {
             if (depth >= 1) {
                 const connection: Connection = new Connection();
-                const dbs = await connection.getConnection();
+                dbs = await connection.getConnection();
                 const db = dbs.db("GHAhistorydata");
 
                 const coll: any[] = await db.listCollections().toArray();
-                const collExists = coll.some(collection => collection.name === this.repoName.toLowerCase());
+                let collExists: boolean = false;
 
-                if (collExists) {
-                    console.log("exists");
-                    await db.dropCollection(this.repoName);
-                } else {
+                this.repoName = this.repoName.toLowerCase();
+                for (const collection of coll) {
+                    if (collection.name === this.repoName) {
+                        collExists = true;
+                        console.log("exists");
+                        await db.dropCollection(this.repoName);
+                        break;
+                    }
+                }
+
+                if (!collExists) {
                     await db.createCollection(this.repoName);
                 }
 
@@ -126,46 +133,43 @@ export class DownloadGHAFilesAndLogs {
                     }
 
                     const amountWorkflows = workflowsJson.workflows?.length || 0;
-                    const workflowPromises: Promise<void>[] = workflowsJson.workflows.map(async (workflow: any) => {
-                        const RunsOfWorkflow = await this.getRunsOfWorkflow(workflow, pages);
+
+                    for (let i = 0; i < amountWorkflows; i++) {
+                        const RunsOfWorkflow = await this.getRunsOfWorkflow(workflowsJson.workflows?.[i], pages);
                         const RunsOfWorkflowJson = JSON.parse(RunsOfWorkflow);
-                        RunsOfWorkflowJson.workflowid = workflow.id;
-                        RunsOfWorkflowJson.workflowname = workflow.name;
+                        RunsOfWorkflowJson.workflowid = workflowsJson.workflows?.[i]?.id;
+                        RunsOfWorkflowJson.workflowname = workflowsJson.workflows?.[i]?.name;
                         RunsOfWorkflowJson.file = "workflow_runs";
                         RunsOfWorkflowJson.downloaddate = new Date(Date.now());
                         await db.collection(this.repoName).insertOne(RunsOfWorkflowJson);
 
                         if (depth >= 3) {
                             const amountRunsOfWorkflow = RunsOfWorkflowJson.workflow_runs?.length || 0;
-                            const runPromises: Promise<void>[] = RunsOfWorkflowJson.workflow_runs.map(async (run: any) => {
-                                const jobsOfRun = await this.getJobsOfRun(run.id);
+
+                            for (let j = 0; j < amountRunsOfWorkflow; j++) {
+                                const jobsOfRun = await this.getJobsOfRun(RunsOfWorkflowJson.workflow_runs?.[j]?.id);
                                 const jobsOfRunJson = JSON.parse(jobsOfRun);
-                                jobsOfRunJson.runid = run.id;
+                                jobsOfRunJson.runid = RunsOfWorkflowJson.workflow_runs?.[j]?.id;
                                 jobsOfRunJson.file = "jobs";
                                 jobsOfRunJson.downloaddate = new Date(Date.now());
                                 await db.collection(this.repoName).insertOne(jobsOfRunJson);
 
                                 if (depth >= 4) {
                                     const amountJobsOfRun = jobsOfRunJson.jobs?.length || 0;
-                                    const jobPromises: Promise<void>[] = jobsOfRunJson.jobs.map(async (job: any) => {
-                                        const logOfJob = await this.getLogOfJob(job.id);
+
+                                    for (let k = 0; k < amountJobsOfRun; k++) {
+                                        const logOfJob = await this.getLogOfJob(jobsOfRunJson.jobs?.[k]?.id);
                                         await db.collection(this.repoName).insertOne({
                                             file: "log",
-                                            jobid: job.id,
+                                            jobid: jobsOfRunJson.jobs?.[k]?.id,
                                             downloaddate: new Date(Date.now()),
                                             content: logOfJob
                                         });
-                                    });
-
-                                    await Promise.all(jobPromises);
+                                    }
                                 }
-                            });
-
-                            await Promise.all(runPromises);
+                            }
                         }
-                    });
-
-                    await Promise.all(workflowPromises);
+                    }
                 }
             }
         } catch (error) {
