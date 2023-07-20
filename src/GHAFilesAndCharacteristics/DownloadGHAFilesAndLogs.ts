@@ -47,8 +47,8 @@ export class DownloadGHAFilesAndLogs {
                         workflowsJson = JSON.parse(reducedFileContents);
                     }
 
-                    for (const workflow of workflowsJson.workflows) {
-                        if (!workflow) continue;
+                    await Promise.all(workflowsJson.workflows.map(async (workflow: any) => {
+                        if (!workflow) return;
 
                         const workflowName = workflow.name;
                         const workflowPath = `GHAhistorydata/${this.repoName}/${workflowName}`;
@@ -61,7 +61,7 @@ export class DownloadGHAFilesAndLogs {
                             saver.fileWriter(`${workflowPath}/${workflowName}_runs`, runsOfWorkflowJson, ".json");
 
                             if (depth >= 3) {
-                                for (const run of runsOfWorkflowJson.workflow_runs) {
+                                await Promise.all(runsOfWorkflowJson.workflow_runs.map(async (run: any) => {
                                     const runId = run.id;
                                     const runPath = `${workflowPath}/runid_${runId}`;
                                     await saver.createTargetDir(runPath);
@@ -72,7 +72,7 @@ export class DownloadGHAFilesAndLogs {
                                     saver.fileWriter(`${runPath}/${runId}_jobs`, jobsOfRunJson, ".json");
 
                                     if (depth >= 4) {
-                                        for (const job of jobsOfRunJson.jobs) {
+                                        await Promise.all(jobsOfRunJson.jobs.map(async (job: any) => {
                                             const jobId = job.id;
                                             const jobPath = `${runPath}/jobid_${jobId}`;
                                             await saver.createTargetDir(jobPath);
@@ -80,12 +80,12 @@ export class DownloadGHAFilesAndLogs {
 
                                             const logOfJob = await this.getLogOfJob(jobId);
                                             saver.textFileWriter(`${jobPath}/jobid_${jobId}_log`, logOfJob, ".txt");
-                                        }
+                                        }));
                                     }
-                                }
+                                }));
                             }
                         }
-                    }
+                    }));
                 } catch (err: any) {
                     console.error(err.message);
                 }
