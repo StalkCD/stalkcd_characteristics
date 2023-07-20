@@ -27,9 +27,9 @@ export class DownloadGHAFilesAndLogs {
      *
      */
     async downloadFiles(saveType: string, depth: number, pages: number) {
-        console.log(depth);
         if (saveType === 'db') {
             await this.downloadToMongoDB(depth, pages);
+            process.exit();
         } else {
             if (depth >= 1) {
                 const history: GHAHistoryBuilder = new GHAHistoryBuilder();
@@ -100,23 +100,16 @@ export class DownloadGHAFilesAndLogs {
         try {
             if (depth >= 1) {
                 const connection: Connection = new Connection();
-                dbs = await connection.getConnection();
+                const dbs = await connection.getConnection();
                 const db = dbs.db("GHAhistorydata");
 
                 const coll: any[] = await db.listCollections().toArray();
-                let collExists: boolean = false;
+                const collExists = coll.some(collection => collection.name === this.repoName.toLowerCase());
 
-                this.repoName = this.repoName.toLowerCase();
-                for (const collection of coll) {
-                    if (collection.name === this.repoName) {
-                        collExists = true;
-                        console.log("exists");
-                        await db.dropCollection(this.repoName);
-                        break;
-                    }
-                }
-
-                if (!collExists) {
+                if (collExists) {
+                    console.log("exists");
+                    await db.dropCollection(this.repoName);
+                } else {
                     await db.createCollection(this.repoName);
                 }
 
@@ -133,43 +126,46 @@ export class DownloadGHAFilesAndLogs {
                     }
 
                     const amountWorkflows = workflowsJson.workflows?.length || 0;
-
-                    for (let i = 0; i < amountWorkflows; i++) {
-                        const RunsOfWorkflow = await this.getRunsOfWorkflow(workflowsJson.workflows?.[i], pages);
+                    const workflowPromises: Promise<void>[] = workflowsJson.workflows.map(async (workflow: any) => {
+                        const RunsOfWorkflow = await this.getRunsOfWorkflow(workflow, pages);
                         const RunsOfWorkflowJson = JSON.parse(RunsOfWorkflow);
-                        RunsOfWorkflowJson.workflowid = workflowsJson.workflows?.[i]?.id;
-                        RunsOfWorkflowJson.workflowname = workflowsJson.workflows?.[i]?.name;
+                        RunsOfWorkflowJson.workflowid = workflow.id;
+                        RunsOfWorkflowJson.workflowname = workflow.name;
                         RunsOfWorkflowJson.file = "workflow_runs";
                         RunsOfWorkflowJson.downloaddate = new Date(Date.now());
                         await db.collection(this.repoName).insertOne(RunsOfWorkflowJson);
 
                         if (depth >= 3) {
                             const amountRunsOfWorkflow = RunsOfWorkflowJson.workflow_runs?.length || 0;
-
-                            for (let j = 0; j < amountRunsOfWorkflow; j++) {
-                                const jobsOfRun = await this.getJobsOfRun(RunsOfWorkflowJson.workflow_runs?.[j]?.id);
+                            const runPromises: Promise<void>[] = RunsOfWorkflowJson.workflow_runs.map(async (run: any) => {
+                                const jobsOfRun = await this.getJobsOfRun(run.id);
                                 const jobsOfRunJson = JSON.parse(jobsOfRun);
-                                jobsOfRunJson.runid = RunsOfWorkflowJson.workflow_runs?.[j]?.id;
+                                jobsOfRunJson.runid = run.id;
                                 jobsOfRunJson.file = "jobs";
                                 jobsOfRunJson.downloaddate = new Date(Date.now());
                                 await db.collection(this.repoName).insertOne(jobsOfRunJson);
 
                                 if (depth >= 4) {
                                     const amountJobsOfRun = jobsOfRunJson.jobs?.length || 0;
-
-                                    for (let k = 0; k < amountJobsOfRun; k++) {
-                                        const logOfJob = await this.getLogOfJob(jobsOfRunJson.jobs?.[k]?.id);
+                                    const jobPromises: Promise<void>[] = jobsOfRunJson.jobs.map(async (job: any) => {
+                                        const logOfJob = await this.getLogOfJob(job.id);
                                         await db.collection(this.repoName).insertOne({
                                             file: "log",
-                                            jobid: jobsOfRunJson.jobs?.[k]?.id,
+                                            jobid: job.id,
                                             downloaddate: new Date(Date.now()),
                                             content: logOfJob
                                         });
-                                    }
+                                    });
+
+                                    await Promise.all(jobPromises);
                                 }
-                            }
+                            });
+
+                            await Promise.all(runPromises);
                         }
-                    }
+                    });
+
+                    await Promise.all(workflowPromises);
                 }
             }
         } catch (error) {
@@ -320,7 +316,7 @@ export class DownloadGHAFilesAndLogs {
         if (res.url == null || res.url == "" && this.rerunLimit < 10) {
             console.log("rerun " + this.rerunLimit)
             this.rerunLimit = this.rerunLimit + 1;
-            this.tryFetch(fetchUrl);
+            await this.tryFetch(fetchUrl);
         }
 
         this.rerunLimit = 0;
