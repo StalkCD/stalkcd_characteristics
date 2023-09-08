@@ -7,6 +7,9 @@ import {MongoClient} from "mongodb";
 
 const GITHUB_API_VERSION = 'application/vnd.github.v3+json'; // https://docs.github.com/en/rest/overview/resources-in-the-rest-api
 
+/**
+ * Class to download historical pipeline execution data from GitHub
+ */
 export class DownloadGHAFilesAndLogs {
 
     repoName: string;
@@ -24,7 +27,12 @@ export class DownloadGHAFilesAndLogs {
     }
 
     /**
-     *
+     * This method is responsible to call all sub-methods in order to
+     * download the historical pipeline execution data. If saveType = db the method to download to MongoDB is called,
+     * otherwise it will be downloaded to folders.
+     * @param depth
+     * @param pages
+     * @private
      */
     async downloadFiles(saveType: string, depth: number, pages: number) {
         if (saveType === 'db') {
@@ -49,6 +57,11 @@ export class DownloadGHAFilesAndLogs {
 
                     for (const workflow of workflowsJson.workflows) {
                         if (!workflow) continue;
+                        const charactersToCheck = ['/', '\\', '"', '|'];
+                        if (charactersToCheck.some(character => workflow.name.includes(character))) {
+                            console.log("illegal workflow name");
+                            continue;
+                        };
 
                         const workflowName = workflow.name;
                         const workflowPath = `GHAhistorydata/${this.repoName}/${workflowName}`;
@@ -95,6 +108,13 @@ export class DownloadGHAFilesAndLogs {
         }
     }
 
+    /**
+     * This method is responsible to call all sub-methods in order to
+     * download the historical pipeline execution data and save it in a MongoDB.
+     * @param depth
+     * @param pages
+     * @private
+     */
     private async downloadToMongoDB(depth: number, pages: number) {
         let dbs: MongoClient | undefined;
         try {
@@ -181,6 +201,12 @@ export class DownloadGHAFilesAndLogs {
         }
     }
 
+    /**
+     * When getting the workflows of a repo, all repos are returned. In cases only one workflow is needed (if this.workflowName is set)
+     * this method reduces the workflow file to only contain that workflow.
+     * @param fileContents
+     * @private
+     */
     private reduceWorkflows(fileContents: any): any {
 
         let indexOfWorkflow = 0;
@@ -194,6 +220,12 @@ export class DownloadGHAFilesAndLogs {
         return fileContents;
     }
 
+
+    /**
+     * Method gets the Log of the Job execution of a given Job by the jobId
+     * @param jobId
+     * @private
+     */
     private async getLogOfJob(jobId: any): Promise<any> {
         let fileContentsResponse = await this.tryFetch(`https://api.github.com/repos/${this.repoOwner}/${this.repoName}/actions/jobs/${jobId}/logs`);
         let fileContents = await fileContentsResponse.text();
@@ -208,6 +240,11 @@ export class DownloadGHAFilesAndLogs {
         return fileContents;
     }
 
+    /**
+     * Method gets the Jobs of a Run by the runId
+     * @param runId
+     * @private
+     */
     private async getJobsOfRun(runId: any): Promise<any> {
         let fileContentsResponse = await this.tryFetch(`https://api.github.com/repos/${this.repoOwner}/${this.repoName}/actions/runs/${runId}/jobs`);
         let fileContents = await fileContentsResponse.text();
@@ -215,7 +252,7 @@ export class DownloadGHAFilesAndLogs {
     }
 
     /**
-     *
+     * Method gets a given amount of pages of runs of a given workflow
      * @param workflow
      * @private
      */
@@ -234,6 +271,12 @@ export class DownloadGHAFilesAndLogs {
         return fileContents;
     }
 
+    /**
+     * Method merges multiple pages of workflow runs into one file, if multiple pages are downloaded.
+     * @param existingJson
+     * @param newResponseJson
+     * @private
+     */
     private mergeWorkflowRuns(existingJson: string, newResponseJson: string): string {
         try {
             const existingData = JSON.parse(existingJson);

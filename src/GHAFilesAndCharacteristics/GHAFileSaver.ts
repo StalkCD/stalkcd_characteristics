@@ -5,6 +5,7 @@ export class GHAFileSaver {
 
     private baseDir: string;
     private targetDir: string = "";
+    private replace: number = 0;
 
     constructor(baseDir: string) {
         this.baseDir = baseDir;

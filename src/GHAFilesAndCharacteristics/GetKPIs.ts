@@ -9,6 +9,9 @@ import {StepsFailed} from "../models/StepsFailed";
 import {TotalAvgStepDurationPerStep} from "../models/TotalAvgStepDurationPerStep";
 import {AvgStepDurationPerStepPerJob} from "../models/AvgStepDurationPerStepPerJob";
 
+/**
+ * Class to aggregate kpis from historical pipeline execution data
+ */
 export class GetKPIs {
 
     repoNameForKPIs: string;
@@ -21,43 +24,36 @@ export class GetKPIs {
         this.workflowNameForKPIs = workflowNameForKPIs;
     }
 
+    /**
+     * Method is responsible to call all sub-method for each kpi and return the results in an array in the end.
+     * Variable loadFrom decides whether to load the data from MongoDB or from textfiles.
+     * @param loadFrom
+     */
     async getKPIs(loadFrom: string): Promise<Characteristics> {
 
-        /*
-        if (this.load != 'local' && this.load != 'download') {
-            throw new Error('No valid load type.');
-        }
-        this.load = "";
-        let history = new GHAHistoryBuilder();
-        if(this.load == 'local') {
-            let loader: GHAFileLoader = new GHAFileLoader(this.repoNameForKPIs, this.workflowNameForKPIs);
-            history = loader.loadFiles();
-        }
-        if(this.load == 'download') {
-            if(this.repoOwnerForKPIs == undefined || this.repoOwnerForKPIs == "") {
-                throw new Error('No repo owner available for download.');
-            }
-            if(this.token == undefined || this.token == "") {
-                throw new Error('No token available for download.');
-            }
-            let loader: DownloadGHAFilesAndLogs = new DownloadGHAFilesAndLogs(this.repoOwnerForKPIs, this.repoNameForKPIs, this.workflowNameForKPIs, this.token!);
-            history = await loader.downloadFiles(save, saveType);
-        }
-
-         */
         let runsFile: any;
         let runsFileJson: any;
-        let workflowJson: any;
         let jobFilesJson: any[] = [];
 
         if(loadFrom == 'local') {
             console.log("local");
+            console.log(this.repoNameForKPIs);
+            console.log(this.workflowNameForKPIs);
             runsFile = await fs.readFileSync(`./GHAhistorydata/${this.repoNameForKPIs}/${this.workflowNameForKPIs}/${this.workflowNameForKPIs}_runs.json`, 'utf-8');
-            runsFileJson = await JSON.parse(runsFile);
-            const amountRunsOfWorkflow = Object.keys(runsFileJson.workflow_runs).length;
-            for(let i = 0; i < amountRunsOfWorkflow; i++) {
-                let jobFile = await fs.readFileSync(`./GHAhistorydata/${this.repoNameForKPIs}/${this.workflowNameForKPIs}/runid_${runsFileJson.workflow_runs[i].id}/${runsFileJson.workflow_runs[i].id}_jobs.json`, 'utf-8');
-                jobFilesJson.push(await JSON.parse(jobFile));
+
+            try {
+                runsFileJson = await JSON.parse(runsFile);
+                const amountRunsOfWorkflow = Object.keys(runsFileJson.workflow_runs).length;
+                for (let i = 0; i < amountRunsOfWorkflow; i++) {
+                    let jobFile = await fs.readFileSync(`./GHAhistorydata/${this.repoNameForKPIs}/${this.workflowNameForKPIs}/runid_${runsFileJson.workflow_runs[i].id}/${runsFileJson.workflow_runs[i].id}_jobs.json`, 'utf-8');
+                    try {
+                        jobFilesJson.push(await JSON.parse(jobFile));
+                    } catch (e: any) {
+                        console.log(e.message);
+                    }
+                }
+            } catch (e: any) {
+                console.log(e.message);
             }
 
         } else if(loadFrom == 'db') {
@@ -107,6 +103,11 @@ export class GetKPIs {
         return kpis;
     }
 
+    /**
+     * Aggregates the kpis 'jobsFailed' and 'stepsFailed'
+     * @param jobFileJson
+     * @private
+     */
     private jobsAndStepsFailed(jobFileJson: any[]) {
         let listJobsFailed: any[] = [];
         let listJobNames: any[] = [];
@@ -177,6 +178,12 @@ export class GetKPIs {
 
     }
 
+    /**
+     * Aggregates the kpis 'totalAvgStepDuration', 'totalAvgSuccessfulStepDuration', 'totalAvgStepDurationPerStep'
+     * and 'avgStepDurationPerStepPerJob'
+     * @param jobFileJson
+     * @private
+     */
     private stepDuration(jobFileJson: any[]) {
 
         let ret: any[] = [];
@@ -297,6 +304,11 @@ export class GetKPIs {
 
     }
 
+    /**
+     * Aggregates the kpi 'buildResults'
+     * @param runsFileJson
+     * @private
+     */
     private getBuildResults(runsFileJson: any) {
 
         let results: any[] = [];
@@ -325,6 +337,11 @@ export class GetKPIs {
         return resultsArray;
     }
 
+    /**
+     * Aggregates the kpi 'avgBuildDuration'
+     * @param runsFileJson
+     * @private
+     */
     private getAvgBuildDuration(runsFileJson: any) {
 
         let totalDur = 0;
@@ -341,6 +358,11 @@ export class GetKPIs {
         return avgDur;
     }
 
+    /**
+     * Aggregates the kpi 'arrivalRate'
+     * @param runsFileJson
+     * @private
+     */
     private async getArrivalRate(runsFileJson: any) {
 
         let arrivalDates: any[] = []; //arrivalsPerDate
