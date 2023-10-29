@@ -37,7 +37,6 @@ export class DownloadGHAFilesAndLogs {
     async downloadFiles(saveType: string, depth: number, pages: number) {
         if (saveType === 'db') {
             await this.downloadToMongoDB(depth, pages);
-            process.exit();
         } else {
             if (depth >= 1) {
                 const history: GHAHistoryBuilder = new GHAHistoryBuilder();
@@ -193,11 +192,12 @@ export class DownloadGHAFilesAndLogs {
                 }
             }
         } catch (error) {
-            console.error("Error occurred during MongoDB operations:", error);
+            console.log("Error occurred during MongoDB operations:", error);
         } finally {
             if (dbs) {
                 await dbs.close();
             }
+            console.log("MongoDB connection closed");
         }
     }
 

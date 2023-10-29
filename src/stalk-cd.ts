@@ -4,7 +4,7 @@ import {GetWorkflowFile} from "./GHAFilesAndCharacteristics/GetWorkflowFile";
 import {GHAFileLoader} from "./GHAFilesAndCharacteristics/GHAFileLoader";
 import {AmountWorkflowsAndRunsTest} from "./AmountWorkflowsAndRunsTest";
 import {GetReposAndWorkflows} from "./GHAFilesAndCharacteristics/GetReposAndWorkflows";
-import {Evaluation} from "./evaluation/Evaluation";
+// import {Evaluation} from "./evaluation/Evaluation";
 
 enum Mode {
     Help,
@@ -15,7 +15,7 @@ enum Mode {
     DownloadGHABillingData,
     AmountWorkflowsAndRunsTest,
     GetReposAndWorkflows,
-    Evaluation
+    // Evaluation
 }
 
 let mode: Mode = Mode.Help;
@@ -83,12 +83,12 @@ program.command('get-repos-and-workflows')
         mode = Mode.GetReposAndWorkflows;
         config = cmd;
     })
-program.command('eval')
-    .option('-t, --token [token]', 'token for the github api')
-    .action((cmd:String) => {
-        mode = Mode.Evaluation;
-        config = cmd;
-    })
+// program.command('eval')
+//     .option('-t, --token [token]', 'token for the github api')
+//     .action((cmd:String) => {
+//         mode = Mode.Evaluation;
+//         config = cmd;
+//     })
 
 program.on('--help', () => {
     console.log('');
@@ -181,10 +181,10 @@ switch (+mode) {
         new GetReposAndWorkflows().get();
         break;
 
-    case Mode.Evaluation:
-        let tokenTest2: string = config.token;
-        new Evaluation().eval(tokenTest2);
-        break;
+    // case Mode.Evaluation:
+    //     let tokenTest2: string = config.token;
+    //     new Evaluation().eval(tokenTest2);
+    //     break;
     /*
     case Mode.DownloadGHABillingData:
         let repoOwnerBilling = 'curl';
