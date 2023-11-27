@@ -9,7 +9,10 @@ const PORT = process.env.PORT || 8082;
 
 const app: Application = express();
 
-app.use(cors());
+app.use(cors({
+  credentials: true,
+  origin: true
+}));
 app.use(express.json());
 app.use(morgan("tiny"));
 app.use(express.static("public"));
