@@ -1,7 +1,10 @@
 import {MongoClient, ServerApiVersion} from "mongodb";
 
 let dbHost = process.env.DATABASE_HOST || 'localhost';
-let uri = "mongodb://user:pass@" + dbHost + ":27017/";
+// let uri = "mongodb://user:pass@" + dbHost + ":27017/";
+
+// URI for MongoDB Atlas free tier
+const uri = "mongodb+srv://stalkcd:io2APPoYt45oNOkX@stalkcd.da7zyzf.mongodb.net/?retryWrites=true&w=majority";
 
 
 const client = new MongoClient(uri,  {
