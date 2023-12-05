@@ -1,10 +1,12 @@
 import {MongoClient, ServerApiVersion} from "mongodb";
+import db_key from "./key";
 
 let dbHost = process.env.DATABASE_HOST || 'localhost';
 // let uri = "mongodb://user:pass@" + dbHost + ":27017/";
+let DBKEY = process.env.DATABASE_KEY || db_key;
 
 // URI for MongoDB Atlas free tier
-const uri = "mongodb+srv://stalkcd:io2APPoYt45oNOkX@stalkcd.da7zyzf.mongodb.net/?retryWrites=true&w=majority";
+const uri= "mongodb+srv://user:" + DBKEY + "@evaluation.hgrcppd.mongodb.net/?retryWrites=true&w=majority"
 
 
 const client = new MongoClient(uri,  {
@@ -18,7 +20,6 @@ const client = new MongoClient(uri,  {
 export class Connection {
 
     async getConnection(): Promise<MongoClient> {
-        console.log(dbHost);
         // Connect the client to the server (optional starting in v4.7)
         await client.connect();
             // Send a ping to confirm a successful connection
