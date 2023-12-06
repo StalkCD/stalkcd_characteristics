@@ -1,8 +1,8 @@
 import {MongoClient, ServerApiVersion} from "mongodb";
 
-let dbHost = process.env.DATABASE_HOST || 'localhost';
+//let dbHost = process.env.DATABASE_HOST || 'localhost';
 // let uri = "mongodb://user:pass@" + dbHost + ":27017/";
-let DBKEY = process.env.DATABASE_KEY;
+let DBKEY = process.env.DB_KEY;
 
 // URI for MongoDB Atlas free tier
 const uri= "mongodb+srv://user:" + DBKEY + "@evaluation.hgrcppd.mongodb.net/?retryWrites=true&w=majority"
