@@ -14,5 +14,3 @@ node_modules/
 /.idea/
 .dockerignore
 public/
-# ignore secrets
-src/database/key.ts

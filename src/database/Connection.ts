@@ -1,9 +1,8 @@
 import {MongoClient, ServerApiVersion} from "mongodb";
-import db_key from "./key";
 
 let dbHost = process.env.DATABASE_HOST || 'localhost';
 // let uri = "mongodb://user:pass@" + dbHost + ":27017/";
-let DBKEY = process.env.DATABASE_KEY || db_key;
+let DBKEY = process.env.DATABASE_KEY;
 
 // URI for MongoDB Atlas free tier
 const uri= "mongodb+srv://user:" + DBKEY + "@evaluation.hgrcppd.mongodb.net/?retryWrites=true&w=majority"
@@ -26,7 +25,6 @@ export class Connection {
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
         return client;
-
     }
 
 }
