@@ -130,7 +130,6 @@ export class DownloadGHAFilesAndLogs {
                     if (collection.name === this.repoName) {
                         collExists = true;
                         console.log("exists");
-                        await db.dropCollection(this.repoName);
                         break;
                     }
                 }
