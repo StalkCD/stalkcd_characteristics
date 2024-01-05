@@ -4,7 +4,7 @@ import {MongoClient, ServerApiVersion} from "mongodb";
 // let uri = "mongodb://user:pass@" + dbHost + ":27017/";
 
 // URI for MongoDB Atlas free tier
-const DBKEY = process.env.DB_KEY?.trim().replace(/^"(.*)"$/, '$1');
+const DBKEY = process.env.DBKEY?.trim().replace(/^"(.*)"$/, '$1');
 const uri= "mongodb+srv://user:" + DBKEY + "@evaluation.hgrcppd.mongodb.net/?retryWrites=true&w=majority"
 
 const client = new MongoClient(uri,  {
