@@ -1,11 +1,12 @@
 import {MongoClient, ServerApiVersion} from "mongodb";
 
-//let dbHost = process.env.DATABASE_HOST || 'localhost';
+// URI for local MongoDB
+// let dbHost = process.env.DATABASE_HOST || 'localhost';
 // let uri = "mongodb://user:pass@" + dbHost + ":27017/";
 
-// URI for MongoDB Atlas free tier
+// URI for MongoDB Atlas
 const DBKEY = process.env.DBKEY?.trim().replace(/^"(.*)"$/, '$1');
-const uri= "mongodb+srv://user:" + DBKEY + "@evaluation.hgrcppd.mongodb.net/?retryWrites=true&w=majority"
+const uri = "..." + DBKEY + "..."
 
 const client = new MongoClient(uri,  {
         serverApi: {
